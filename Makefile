@@ -3,12 +3,13 @@
 TCFLAGS = -ltcmalloc 
 GSL_LIBS = $(shell gsl-config --libs)
 CFLAGS = $(shell gsl-config --cflags) 
+GFLAGS = -g
 
 all:
 ## IF TCMALLOC IS NOT INSTALLED, COMMENT OUT THE FOLLOWING LINE 
 ## BY PLACING A # IN FRONT OF THE FOLLOWING LINE AND REMOVE '#' ON THE NEXT LINE
 #	$(LINK.cc) -std=c++11 -O3 tRNA.cpp $(TCFLAGS) $(GSL_LIBS) $(CFLAGS) -o tRNA
-	$(LINK.cc) -std=c++11 -O3 tRNA.cpp $(GSL_LIBS) $(CFLAGS) -o tRNA
+	$(LINK.cc) -std=c++11 -O3 tRNA.cpp $(GFLAGS) $(GSL_LIBS) $(CFLAGS) -o tRNA
 
 
 ## In many cases, tcmalloc will substantially decrease runtime of SELAM
