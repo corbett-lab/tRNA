@@ -15,10 +15,13 @@ void assign_function( gene* old_trna, gene* new_trna, cmd_line &options ) {
 
 	//// in the models, all mutations are assumed to be completely inactivating!
 
-	if ( ( options.model1 == true ) or ( options.model2 == true ) or ( options.model4 == true ) ) {
+	/*if ( ( options.model1 == true ) or ( options.model2 == true ) or ( options.model4 == true ) ) {
 		new_trna->function = 0 ;
-	}
+	}*/
 
+	if ( ( options.model == 1 ) or ( options.model == 2 ) or ( options.model == 4 ) ) {
+			new_trna->function = 0 ;
+		}
 
 	// mutations should get rid of some function but not affect expression most likely
 	// from the classifier, expression levels are pretty static!

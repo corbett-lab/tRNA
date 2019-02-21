@@ -73,6 +73,8 @@ public:
     int model4_count ;
     float model4_deverr ;
     
+    int model ;
+
     /// read relevant information
     void read_cmd_line ( int argc, char *argv[] ) ;
 
@@ -97,6 +99,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     // for now, let's do 1e-6 to 1e-4 for both
 
+    // TODO externalize all this in a properties file
     germline_rate = 1e-6 ;
     somatic_rate = germline_rate * 10 ;
     deletion_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
@@ -132,6 +135,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     model4 = false ;
     model4_count = 1 ;
     model4_deverr = 1e-4 ;
+    model = 2;
     
     /// accept command line parameters
     for (int i=1; i<argc; i++) {
