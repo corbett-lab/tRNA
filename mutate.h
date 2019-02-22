@@ -1,11 +1,39 @@
 #ifndef __MUTATE_H
 #define __MUTATE_H
 
+void update_gene(gene* new_trna,vector<gene*> trnas, int i, int g,int current_gen, cmd_line &options,int &trna_counter,list<gene*> &trna_bank, bool duplicate) {
+	if (duplicate) {
+        if ( gsl_ran_bernoulli( rng, 0.5 ) or ((trnas[g])->locus + 1 > options.map_length) ) {
+              new_trna->locus = (trnas[g])->locus - gsl_rng_uniform( rng ) ;
+          }
+          else{
+              new_trna->locus = (trnas[g])->locus + gsl_rng_uniform( rng ) ;
+          }
+    	/// if the trna jumps, need to reassigned neighborhood etc
+        if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
+        	neighborhood(trnas[g], new_trna, options ) ;
+        }
+	}
+	else {
+		new_trna->locus = trnas[g]->locus ;
+	}
+    new_trna->somatic = trnas[g]->somatic ;
+    new_trna->germline = trnas[g]->germline ;
+    new_trna->neighborhood = trnas[g]->neighborhood ;
+    new_trna->birth = current_gen ;
+    new_trna->frequency.push_back( 0 ) ;
+    new_trna->progenitor = trnas[g]->name ;
+    assign_function( trnas[g], new_trna, options ) ;
+    trna_counter ++ ;
+    new_trna->name = trna_counter ;
+    trna_bank.push_back(new_trna ) ;
+    trnas[g] = new_trna ;
+}
 
 // sort container by locus
 bool sortByLocus(gene* a, gene* b) { return (a->locus < b->locus); }
 
-void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter ) {
+void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter) {
     
     // add germline mutations
 
@@ -34,41 +62,23 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     // - how to model without biasing some ideal number of tRNAs to have
     // 
 
+	// TODO merge the duplicated code in 4 for loops!
+
+
+
     for ( int i = 0 ; i < population.size() ; i ++ ) {
         for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).germline ) ) {
-            	
-            	gene* new_trna = new gene ; 
-            	new_trna->locus = (*population[i].maternal_trnas[g]).locus ; 
-            	new_trna->somatic = (*population[i].maternal_trnas[g]).somatic ; 
-            	new_trna->germline = (*population[i].maternal_trnas[g]).germline ;
-            	new_trna->neighborhood = (*population[i].maternal_trnas[g]).neighborhood ;
-                new_trna->birth = current_gen ;
-                new_trna->frequency.push_back( 0 ) ;
-                new_trna->progenitor = (*population[i].maternal_trnas[g]).name ;
-                assign_function( population[i].maternal_trnas[g], new_trna, options ) ;
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
-                trna_bank.push_back( new_trna ) ; 
-                population[i].maternal_trnas[g] = new_trna ;
+            	gene* new_trna = new gene ;
+            	update_gene(new_trna, population[i].maternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, false);
             }
         }
 
         for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).germline ) ) {
             	gene* new_trna = new gene ; 
-            	new_trna->locus = (*population[i].paternal_trnas[g]).locus ; 
-            	new_trna->somatic = (*population[i].paternal_trnas[g]).somatic ; 
-            	new_trna->germline = (*population[i].paternal_trnas[g]).germline ;
-            	new_trna->neighborhood = (*population[i].paternal_trnas[g]).neighborhood ;
-                new_trna->birth = current_gen ;
-                new_trna->frequency.push_back( 0 ) ;
-                new_trna->progenitor = (*population[i].paternal_trnas[g]).name ;
-                assign_function( population[i].paternal_trnas[g], new_trna, options ) ;
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
-                trna_bank.push_back( new_trna ) ;
-                population[i].paternal_trnas[g] = new_trna ; 
+            	update_gene(new_trna, population[i].paternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, false);
+
             }
         }
     }
@@ -80,29 +90,8 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                 
                 /// copy current gene copy
                 gene* new_trna = new gene ; 
-                if ( gsl_ran_bernoulli( rng, 0.5 ) or ((*population[i].maternal_trnas[g]).locus + 1 > options.map_length) ) {
-                    new_trna->locus = (*population[i].maternal_trnas[g]).locus - gsl_rng_uniform( rng ) ;
-                }
-                else{
-                    new_trna->locus = (*population[i].maternal_trnas[g]).locus + gsl_rng_uniform( rng ) ;
-                }
-            	new_trna->locus = (*population[i].maternal_trnas[g]).locus + gsl_rng_uniform( rng ) ; 
-            	new_trna->somatic = (*population[i].maternal_trnas[g]).somatic ; 
-            	new_trna->germline = (*population[i].maternal_trnas[g]).germline ;
-            	new_trna->function = (*population[i].maternal_trnas[g]).function ;
-            	new_trna->neighborhood = (*population[i].maternal_trnas[g]).neighborhood ; 
-                new_trna->birth = current_gen ;
-                new_trna->frequency.push_back( 0 ) ;
-                new_trna->progenitor = (*population[i].maternal_trnas[g]).name ;
+            	update_gene(new_trna, population[i].maternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, true);
 
-				/// if the trna jumps, need to reassigned neighborhood etc
-            	if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
-                    neighborhood( population[i].maternal_trnas[g], new_trna, options ) ;
-            	}
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
-            	trna_bank.push_back( new_trna ) ; 
-                (population[i].maternal_trnas).push_back( new_trna ) ; 
             }
         }
 
@@ -111,28 +100,8 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                 
                 /// copy current gene copy
                 gene* new_trna = new gene ; 
-                if ( gsl_ran_bernoulli( rng, 0.5 ) or ((*population[i].paternal_trnas[g]).locus + 1 > options.map_length) ) {
-                    new_trna->locus = (*population[i].paternal_trnas[g]).locus - gsl_rng_uniform( rng ) ;
-                }
-                else{
-                    new_trna->locus = (*population[i].paternal_trnas[g]).locus + gsl_rng_uniform( rng ) ;
-                }
-            	new_trna->somatic = (*population[i].paternal_trnas[g]).somatic ; 
-            	new_trna->germline = (*population[i].paternal_trnas[g]).germline ;
-            	new_trna->function = (*population[i].paternal_trnas[g]).function ; 
-            	new_trna->neighborhood = (*population[i].paternal_trnas[g]).neighborhood ; 
-                new_trna->birth = current_gen ;
-                new_trna->frequency.push_back( 0 ) ;
-                new_trna->progenitor = (*population[i].paternal_trnas[g]).name ;
+            	update_gene(new_trna, population[i].paternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, true);
 
-            	/// if the trna jumps, need to reassigned neighborhood etc
-            	if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
-                    neighborhood( population[i].paternal_trnas[g], new_trna, options ) ;
-            	}
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
-            	trna_bank.push_back( new_trna ) ; 
-                (population[i].paternal_trnas).push_back( new_trna ) ; 
             }
         }
     }

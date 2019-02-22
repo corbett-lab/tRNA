@@ -32,7 +32,7 @@ const gsl_rng *rng ;
 
 /// our headers
 #include "cmd_line.h"
-#include "trna.h"
+#include "gene.h"
 #include "individual.h"
 #include "initialize_population.h"
 #include "assign_function.h"
@@ -42,6 +42,7 @@ const gsl_rng *rng ;
 #include "fitness.h"
 #include "reproduce.h" 
 #include "stats.h"
+#include "Population.h"
 
 
 /// main 
@@ -74,46 +75,75 @@ int main ( int argc, char **argv ) {
     // look up some more studies on estimates and see what we can get
 
 
+    // TODO make this interface very easy for the end-user -- hide all these implementation details but expose the stuff
+    // that the developer should need to specify beyond the config options
 
     /// trna bank
     list<gene*> trna_bank ; 
 
+    // TODO lifespan should be inside the gene object?  or outside if gene gets reaped?
     /// list of tRNA lifespans
     list<float> trna_lifespans ;
     
+    // TODO create population class to contain individuals
     // create population of size n with two tRNAs of equivalent function
     initialize_population ( options, trna_bank, trna_counter ) ; 
 
     /// now copy to population of size n
-    vector<individual> population ( options.n ) ;
-    for ( int i = 0 ; i < population.size() ; i ++ ) { 
+    //Population population = Population(options.n);
+    vector<individual> population(options.n);
+
+    //for ( int i = 0 ; i < population.getSize(); i ++ ) {
+    for ( int i = 0 ; i < population.size() ; i ++ ) {
+
     	for ( auto t : trna_bank ) { 
-    		population[i].maternal_trnas.push_back( t ) ;
-    		population[i].paternal_trnas.push_back( t ) ;
+    		//population.getIndividuals()[i].maternal_trnas.push_back( t ) ;
+    		//population.getIndividuals()[i].paternal_trnas.push_back( t ) ;
+       		population[i].maternal_trnas.push_back( t ) ;
+       		population[i].paternal_trnas.push_back( t ) ;
     	}
     }
 
+    // TODO fitness should be member of individual?
     // fitness vector
     double fitness [options.n]  ;
 
+    // TODO total function should be member of individual?
     double total_function_vector [options.n] ;
     
     // evolve the population forward in time
+
+    // TODO: print header
+    //cout << "\tt.first.name_t.first.locus_t.first.function_t.first.neighborhood_t.first.birth_.first.progenitor_t.second" ;
+
     for ( int g = 1 ; g < options.generations ; g ++ ) {
         
+    	// TODO refactor to be a new population object
         /// vector to swap with
-        vector<individual> new_population ( options.n ) ;
-                
+        //Population new_population = Population(options.n);
+    	vector<individual> new_population(options.n);
+
+
+        // TODO: containment refactor -- population.evolve ==> individual.mutate() ==> gene.mutate() ==> individual.fitness() ==> individual.reproduce()
         /// somatic and germline mutations
-        mutate( population, options, trna_bank, g, trna_counter ) ;
+        //vector<individual> individuals = population.getIndividuals();
+    	//vector<individual> new_individuals = new_population.getIndividuals();
+
+        //mutate( individuals, options, trna_bank, g, trna_counter ) ;
+    	mutate( population, options, trna_bank, g, trna_counter ) ;
 
         /// compute fitness
+        //compute_fitness( total_function_vector, fitness, individuals, options ) ;
         compute_fitness( total_function_vector, fitness, population, options ) ;
-        
+
         /// reproduce w/ fitness + recombination
+        //reproduce( fitness, individuals, new_individuals, options ) ;
+        //reproduce( fitness, individuals, new_population, options ) ;
         reproduce( fitness, population, new_population, options ) ;
 
         /// swap populations
+        //swap( individuals, new_individuals ) ;
+        //swap(individuals, new_population);
         swap( population, new_population ) ;
 
 		/// print stats
@@ -124,7 +154,9 @@ int main ( int argc, char **argv ) {
             cout << ", del = " << options.deletion_rate << endl ;
         }
 
+        //print_stats( fitness, individuals, g, trna_bank, trna_lifespans, options ) ;
         print_stats( fitness, population, g, trna_bank, trna_lifespans, options ) ;
+
     }
 
     if ( options.output_frequencies == true ){

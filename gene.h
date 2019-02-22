@@ -1,6 +1,8 @@
 #ifndef __TRNA_H
 #define __TRNA_H
 
+// TODO refactor this into file called gene.cpp
+
 // need a way to record mutations and their impacts
 // would also be good to record parent of each gene
 
