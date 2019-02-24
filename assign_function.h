@@ -1,7 +1,7 @@
 #ifndef __ASSIGN_FUNCTION_H
 #define __ASSIGN_FUNCTION_H
 
-void assign_function( gene* old_trna, gene* new_trna, cmd_line &options ) {
+void assign_function( Gene* old_trna, Gene* new_trna, cmd_line &options ) {
 
 	// this tRNA has a mutation
 	// need to draw mutation's fitness effect,
@@ -20,7 +20,7 @@ void assign_function( gene* old_trna, gene* new_trna, cmd_line &options ) {
 	}*/
 
 	if ( ( options.model == 1 ) or ( options.model == 2 ) or ( options.model == 4 ) ) {
-			new_trna->function = 0 ;
+			new_trna->setFunction(0 );
 		}
 
 	// mutations should get rid of some function but not affect expression most likely
@@ -28,15 +28,15 @@ void assign_function( gene* old_trna, gene* new_trna, cmd_line &options ) {
 	// TODO: replace the arbitrary 0.05 penalty with actual bit score penalties
 
 	else {
-		if ( old_trna->function < 0.05 ){
-			new_trna->function = 0 ;
+		if ( old_trna->getFunction() < 0.05 ){
+			new_trna->setFunction(0) ;
 		}
 		else {
 			if ( gsl_rng_uniform( rng ) < 0.99 ) {
-				new_trna->function = ( old_trna->function - ( 0.05 ) ) * new_trna->neighborhood ;
+				new_trna->setFunction(( old_trna->getFunction() - ( 0.05 ) ) * new_trna->getNeighborhood()) ;
 			}
 			else {
-				new_trna->function = ( old_trna->function - ( 0.001 ) ) * new_trna->neighborhood ;
+				new_trna->setFunction(( old_trna->getFunction() - ( 0.001 ) ) * new_trna->getNeighborhood());
 			} 
 		}
 	}

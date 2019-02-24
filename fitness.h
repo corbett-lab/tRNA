@@ -3,7 +3,12 @@
 
 /// compute fitness
 /// obviously this needs a complete rework
-void compute_fitness( double total_function_vector[], double fitness[], vector<individual> &population, cmd_line &options ) {
+
+// TODO what is the 0.05 fudge?  amount of degredation in function based on somatic mutation rate?  shouldn't it be in mutate.h then?
+
+
+//void compute_fitness( double total_function_vector[], double fitness[], vector<individual*> &population, cmd_line &options ) {
+void compute_fitness( double total_function_vector[], double fitness[], vector<Individual> &population, cmd_line &options ) {
 
     // alternative fitness function described in model4 paper:
     // if at least 1 functional tRNA, fitness = 1 - somatic rate ^ number of tRNAs
@@ -11,11 +16,11 @@ void compute_fitness( double total_function_vector[], double fitness[], vector<i
         for ( int i = 0 ; i < population.size() ; i ++ ) {
             double mom_function = 0 ;
             double dad_function = 0 ;
-            for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
-                mom_function += (*population[i].maternal_trnas[g]).function ;
+            for ( int g = 0 ; g < population[i].getMaternal_trnas().size() ; g ++ ) {
+                mom_function += (*population[i].getMaternal_trnas()[g]).getFunction() ;
                 }
-            for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
-                dad_function += (*population[i].paternal_trnas[g]).function ;
+            for ( int g = 0 ; g < population[i].getPaternal_trnas().size() ; g ++ ) {
+                dad_function += (*population[i].getPaternal_trnas()[g]).getFunction() ;
                 }
             if ( (mom_function == 0) and (dad_function == 0) ){
                 fitness[i] = 0.0 ;
@@ -46,28 +51,28 @@ void compute_fitness( double total_function_vector[], double fitness[], vector<i
             double max_function = 0 ;
 
             //// update with specific functional fitness model for mutations
-            for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
-                if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
-                    if ((*population[i].maternal_trnas[g]).function - 0.05 > max_function ){
-                        max_function = (*population[i].maternal_trnas[g]).function - 0.05 ;
+            for ( int g = 0 ; g < population[i].getMaternal_trnas().size() ; g ++ ) {
+                if ( gsl_ran_bernoulli( rng, (*population[i].getMaternal_trnas()[g]).getSomatic() ) ) {
+                    if ((*population[i].getMaternal_trnas()[g]).getFunction() - 0.05 > max_function ){
+                        max_function = (*population[i].getMaternal_trnas()[g]).getFunction() - 0.05 ;
                     } 
                 }
                 else {
-                    if ((*population[i].maternal_trnas[g]).function > max_function){
-                        max_function = (*population[i].maternal_trnas[g]).function ;
+                    if ((*population[i].getMaternal_trnas()[g]).getFunction() > max_function){
+                        max_function = (*population[i].getMaternal_trnas()[g]).getFunction() ;
                     }
                 }
 
             }
-            for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
-                if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
-                    if ((*population[i].paternal_trnas[g]).function - 0.05 > max_function ){
-                        max_function = (*population[i].paternal_trnas[g]).function - 0.05 ;
+            for ( int g = 0 ; g < population[i].getPaternal_trnas().size() ; g ++ ) {
+                if ( gsl_ran_bernoulli( rng, (*population[i].getPaternal_trnas()[g]).getSomatic() ) ) {
+                    if ((*population[i].getPaternal_trnas()[g]).getFunction() - 0.05 > max_function ){
+                        max_function = (*population[i].getPaternal_trnas()[g]).getFunction() - 0.05 ;
                     }
                 }
                 else {
-                    if ((*population[i].paternal_trnas[g]).function > max_function){
-                        max_function = (*population[i].paternal_trnas[g]).function ;
+                    if ((*population[i].getPaternal_trnas()[g]).getFunction() > max_function){
+                        max_function = (*population[i].getPaternal_trnas()[g]).getFunction() ;
                     }
                 }
             }

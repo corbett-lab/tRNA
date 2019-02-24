@@ -24,7 +24,7 @@
 // truncation selection is instead 0 below a threshold and 1 above (similar to what we originally used)
 // the idea is if w(x) < c or w(x) > c+d, then fitness = 0, else fitness = 1
 
-void function_to_fitness ( double total_function_vector[], double fitness[], double mean_function, vector<individual> &population, cmd_line &options ) {
+void function_to_fitness ( double total_function_vector[], double fitness[], double mean_function, vector<Individual> &population, cmd_line &options ) {
 
 
 	//int fitness_count = 0 ;

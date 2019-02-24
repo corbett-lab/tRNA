@@ -32,8 +32,8 @@ const gsl_rng *rng ;
 
 /// our headers
 #include "cmd_line.h"
-#include "gene.h"
-#include "individual.h"
+#include "Gene.h"
+#include "Individual.h"
 #include "initialize_population.h"
 #include "assign_function.h"
 #include "neighborhood.h"
@@ -79,7 +79,7 @@ int main ( int argc, char **argv ) {
     // that the developer should need to specify beyond the config options
 
     /// trna bank
-    list<gene*> trna_bank ; 
+    list<Gene*> trna_bank ;
 
     // TODO lifespan should be inside the gene object?  or outside if gene gets reaped?
     /// list of tRNA lifespans
@@ -90,17 +90,17 @@ int main ( int argc, char **argv ) {
     initialize_population ( options, trna_bank, trna_counter ) ; 
 
     /// now copy to population of size n
-    //Population population = Population(options.n);
-    vector<individual> population(options.n);
+    Population population = Population(options.n);
+    //vector<Individual> population(options.n);
 
-    //for ( int i = 0 ; i < population.getSize(); i ++ ) {
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
-
+    for ( int i = 0 ; i < population.getSize(); i ++ ) {
+    //for ( int i = 0 ; i < population.size() ; i ++ ) {
     	for ( auto t : trna_bank ) { 
-    		//population.getIndividuals()[i].maternal_trnas.push_back( t ) ;
-    		//population.getIndividuals()[i].paternal_trnas.push_back( t ) ;
-       		population[i].maternal_trnas.push_back( t ) ;
-       		population[i].paternal_trnas.push_back( t ) ;
+    		population.getIndividuals()[i].getMaternal_trnas().push_back( t ) ;
+    		population.getIndividuals()[i].getPaternal_trnas().push_back( t ) ;
+       		//population[i].getMaternal_trnas().push_back( t ) ;
+       		//population[i].getPaternal_trnas().push_back( t ) ;
+
     	}
     }
 
@@ -120,31 +120,29 @@ int main ( int argc, char **argv ) {
         
     	// TODO refactor to be a new population object
         /// vector to swap with
-        //Population new_population = Population(options.n);
-    	vector<individual> new_population(options.n);
+        Population new_population = Population(options.n);
+    	//vector<Individual> new_population(options.n);
 
 
         // TODO: containment refactor -- population.evolve ==> individual.mutate() ==> gene.mutate() ==> individual.fitness() ==> individual.reproduce()
         /// somatic and germline mutations
-        //vector<individual> individuals = population.getIndividuals();
-    	//vector<individual> new_individuals = new_population.getIndividuals();
+        vector<Individual> individuals = population.getIndividuals();
+    	vector<Individual> new_individuals = new_population.getIndividuals();
 
-        //mutate( individuals, options, trna_bank, g, trna_counter ) ;
-    	mutate( population, options, trna_bank, g, trna_counter ) ;
+        mutate( individuals, options, trna_bank, g, trna_counter ) ;
+    	//mutate( population, options, trna_bank, g, trna_counter ) ;
 
         /// compute fitness
-        //compute_fitness( total_function_vector, fitness, individuals, options ) ;
-        compute_fitness( total_function_vector, fitness, population, options ) ;
+        compute_fitness( total_function_vector, fitness, individuals, options ) ;
+        //compute_fitness( total_function_vector, fitness, population, options ) ;
 
         /// reproduce w/ fitness + recombination
-        //reproduce( fitness, individuals, new_individuals, options ) ;
-        //reproduce( fitness, individuals, new_population, options ) ;
-        reproduce( fitness, population, new_population, options ) ;
+        reproduce( fitness, individuals, new_individuals, options ) ;
+        //reproduce( fitness, population, new_population, options ) ;
 
         /// swap populations
-        //swap( individuals, new_individuals ) ;
-        //swap(individuals, new_population);
-        swap( population, new_population ) ;
+        swap( individuals, new_individuals ) ;
+        //swap( population, new_population ) ;
 
 		/// print stats
         if ( g == 1 ){
@@ -154,8 +152,8 @@ int main ( int argc, char **argv ) {
             cout << ", del = " << options.deletion_rate << endl ;
         }
 
-        //print_stats( fitness, individuals, g, trna_bank, trna_lifespans, options ) ;
-        print_stats( fitness, population, g, trna_bank, trna_lifespans, options ) ;
+        print_stats( fitness, individuals, g, trna_bank, trna_lifespans, options ) ;
+        //print_stats( fitness, population, g, trna_bank, trna_lifespans, options ) ;
 
     }
 
@@ -166,9 +164,9 @@ int main ( int argc, char **argv ) {
         ofstream myfile;
         myfile.open( frequency_log, fstream::app ) ;
         for ( auto t : trna_bank ) {
-            myfile << t->name << "\t" << t->birth << "\t" << t->progenitor << "\t" ;
-            for ( int i = 1 ; i < t->frequency.size() ; i ++ ) {
-                myfile << t->frequency[i] << "," ;
+            myfile << t->getName() << "\t" << t->getBirth() << "\t" << t->getProgenitor() << "\t" ;
+            for ( int i = 1 ; i < t->getFrequency().size() ; i ++ ) {
+                myfile << t->getFrequency()[i] << "," ;
             }
             myfile << endl ;
         }

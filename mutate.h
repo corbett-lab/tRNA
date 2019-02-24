@@ -1,13 +1,13 @@
 #ifndef __MUTATE_H
 #define __MUTATE_H
 
-void update_gene(gene* new_trna,vector<gene*> trnas, int i, int g,int current_gen, cmd_line &options,int &trna_counter,list<gene*> &trna_bank, bool duplicate) {
+void update_gene(Gene* new_trna,vector<Gene*> trnas, int i, int g,int current_gen, cmd_line &options,int &trna_counter,list<Gene*> &trna_bank, bool duplicate) {
 	if (duplicate) {
-        if ( gsl_ran_bernoulli( rng, 0.5 ) or ((trnas[g])->locus + 1 > options.map_length) ) {
-              new_trna->locus = (trnas[g])->locus - gsl_rng_uniform( rng ) ;
+        if ( gsl_ran_bernoulli( rng, 0.5 ) or ((trnas[g])->getLocus() + 1 > options.map_length) ) {
+              new_trna->setLocus((trnas[g])->getLocus() - gsl_rng_uniform( rng )) ;
           }
           else{
-              new_trna->locus = (trnas[g])->locus + gsl_rng_uniform( rng ) ;
+              new_trna->setLocus((trnas[g])->getLocus() + gsl_rng_uniform( rng )) ;
           }
     	/// if the trna jumps, need to reassigned neighborhood etc
         if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
@@ -15,26 +15,30 @@ void update_gene(gene* new_trna,vector<gene*> trnas, int i, int g,int current_ge
         }
 	}
 	else {
-		new_trna->locus = trnas[g]->locus ;
+		new_trna->setLocus(trnas[g]->getLocus()) ;
 	}
-    new_trna->somatic = trnas[g]->somatic ;
-    new_trna->germline = trnas[g]->germline ;
-    new_trna->neighborhood = trnas[g]->neighborhood ;
-    new_trna->birth = current_gen ;
-    new_trna->frequency.push_back( 0 ) ;
-    new_trna->progenitor = trnas[g]->name ;
+    new_trna->setSomatic(trnas[g]->getSomatic()) ;
+    new_trna->setGermline(trnas[g]->getGermline()) ;
+    new_trna->setNeighborhood(trnas[g]->getNeighborhood()) ;
+    new_trna->setBirth(current_gen) ;
+    /*vector<int> f = new_trna->getFrequency();
+    f.push_back(0);
+    new_trna->setFrequency(f);*/
+    new_trna->getFrequency().push_back(0);
+    new_trna->setProgenitor(trnas[g]->getName()) ;
     assign_function( trnas[g], new_trna, options ) ;
     trna_counter ++ ;
-    new_trna->name = trna_counter ;
+    new_trna->setName(trna_counter) ;
     trna_bank.push_back(new_trna ) ;
     trnas[g] = new_trna ;
 }
 
 // sort container by locus
-bool sortByLocus(gene* a, gene* b) { return (a->locus < b->locus); }
+bool sortByLocus(Gene* a, Gene* b) { return (a->getLocus() < b->getLocus()); }
 
-void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter) {
-    
+//void mutate( vector<individual*> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter) {
+void mutate( vector<Individual> &population, cmd_line &options, list<Gene*> &trna_bank, int current_gen, int &trna_counter) {
+
     // add germline mutations
 
 	/// obviously we will want these mutations to have a range of possible effects on function
@@ -62,22 +66,20 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     // - how to model without biasing some ideal number of tRNAs to have
     // 
 
-	// TODO merge the duplicated code in 4 for loops!
-
 
 
     for ( int i = 0 ; i < population.size() ; i ++ ) {
-        for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
-            if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).germline ) ) {
-            	gene* new_trna = new gene ;
-            	update_gene(new_trna, population[i].maternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, false);
+        for ( int g = 0 ; g < population[i].getMaternal_trnas().size() ; g ++ ) {
+            if ( gsl_ran_bernoulli( rng, (*population[i].getMaternal_trnas()[g]).getGermline() ) ) {
+            	Gene* new_trna = new Gene ;
+            	update_gene(new_trna, population[i].getMaternal_trnas(),  i,  g, current_gen, options,trna_counter,trna_bank, false);
             }
         }
 
-        for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
-            if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).germline ) ) {
-            	gene* new_trna = new gene ; 
-            	update_gene(new_trna, population[i].paternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, false);
+        for ( int g = 0 ; g < population[i].getPaternal_trnas().size() ; g ++ ) {
+            if ( gsl_ran_bernoulli( rng, (*population[i].getPaternal_trnas()[g]).getGermline() ) ) {
+            	Gene* new_trna = new Gene ; 
+            	update_gene(new_trna, population[i].getPaternal_trnas(),  i,  g, current_gen, options,trna_counter,trna_bank, false);
 
             }
         }
@@ -85,22 +87,22 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
 
     // duplicate tRNAs
     for ( int i = 0 ; i < population.size() ; i ++ ) {
-        for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
+        for ( int g = 0 ; g < population[i].getMaternal_trnas().size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, options.duplication_rate ) ) {
                 
                 /// copy current gene copy
-                gene* new_trna = new gene ; 
-            	update_gene(new_trna, population[i].maternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, true);
+                Gene* new_trna = new Gene ; 
+            	update_gene(new_trna, population[i].getMaternal_trnas(),  i,  g, current_gen, options,trna_counter,trna_bank, true);
 
             }
         }
 
-        for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
+        for ( int g = 0 ; g < population[i].getPaternal_trnas().size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, options.duplication_rate ) ) {
                 
                 /// copy current gene copy
-                gene* new_trna = new gene ; 
-            	update_gene(new_trna, population[i].paternal_trnas,  i,  g, current_gen, options,trna_counter,trna_bank, true);
+                Gene* new_trna = new Gene ; 
+            	update_gene(new_trna, population[i].getPaternal_trnas(),  i,  g, current_gen, options,trna_counter,trna_bank, true);
 
             }
         }
@@ -108,14 +110,14 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
 
     // delete tRNAs
     for ( int i = 0 ; i < population.size() ; i ++ ) {
-        for ( int g = population[i].maternal_trnas.size() -1 ; g > -1 ; g -- ) {
+        for ( int g = population[i].getMaternal_trnas().size() -1 ; g > -1 ; g -- ) {
             if ( gsl_ran_bernoulli( rng, options.deletion_rate ) ) {
-                population[i].maternal_trnas.erase( population[i].maternal_trnas.begin() + g ) ;
+                population[i].getMaternal_trnas().erase( population[i].getMaternal_trnas().begin() + g ) ;
             }
         }
-        for ( int g = population[i].paternal_trnas.size() -1 ; g > -1 ; g -- ) {
+        for ( int g = population[i].getPaternal_trnas().size() -1 ; g > -1 ; g -- ) {
             if ( gsl_ran_bernoulli( rng, options.deletion_rate ) ) {
-                population[i].paternal_trnas.erase( population[i].paternal_trnas.begin() + g ) ;
+                population[i].getPaternal_trnas().erase( population[i].getPaternal_trnas().begin() + g ) ;
             }
         }
     }
@@ -126,8 +128,8 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
 
         // NOW sort, and by locus, so this might fix the recombination issue:
         // NO, next is fitness so we are going to re-sort by function anyway
-        std::sort(population[i].maternal_trnas.begin() , population[i].maternal_trnas.end(), sortByLocus);
-        std::sort(population[i].paternal_trnas.begin() , population[i].paternal_trnas.end(), sortByLocus);
+        std::sort(population[i].getMaternal_trnas().begin() , population[i].getMaternal_trnas().end(), sortByLocus);
+        std::sort(population[i].getPaternal_trnas().begin() , population[i].getPaternal_trnas().end(), sortByLocus);
     }
 }
 
