@@ -20,6 +20,9 @@ void assign_sequence( gene* old_trna, gene* new_trna, vector<double> &mutation_p
 	else {
 		int random_index = rand() % mutation_penalties.size() ;
 		new_trna->sequence = (old_trna->sequence + mutation_penalties[random_index]) ;
+		if ( new_trna->sequence > 1.0 ) {
+			new_trna->sequence = 1.0 ;
+		}
 	}
 }
 
