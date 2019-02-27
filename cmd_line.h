@@ -14,12 +14,6 @@ public:
     /// number of genes at start
     int start_count ;
     
-    /// min function required for viability
-    double min_function ;
-
-    /// max function beyond which fitness = 0
-    double max_function ;
-    
     /// mutation rates
     double germline_rate ;
     double somatic_rate ;
@@ -34,8 +28,8 @@ public:
     /// probability of cluster
     double prob_cluster ; 
 
-    /// selection coefficient
-    double selection_coefficient ;
+    /// to be used in mapping sequence to fitness
+    double lambda_seq ;
 
     // output frequencies at the end or no
     bool output_frequencies ;
@@ -49,15 +43,8 @@ public:
     /// map length 
     double map_length ;
 
-    /// variable mutation/transcription rates
-    /// for now, we'll assume these are correlated 
-    bool variable ;
-
     // print every __ generations
     int print_count ;
-
-    // mean proportion of cells in which a portion of the genome is active
-    double mean_neighborhood ;
 
     // for running many simulations and keeping track of output
     int run_num ;
@@ -98,22 +85,18 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     // for now, let's do 1e-6 to 1e-4 for both
 
     germline_rate = 1e-6 ;
-    somatic_rate = germline_rate * 10 ;
+    somatic_rate = 1e-5 ;
     deletion_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
     duplication_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
 
     seed = time(NULL) ;
-    min_function = 0 ;
-    max_function = 2 ;
     start_count = 1 ; 
-    variable = false ;
     pseudogene = false ;
     map_length = 30 ; 
-    prob_cluster = 1 ; 
+    prob_cluster = 0.5 ; 
+    lambda_seq = -5.0 ;
     print_count = 1000 ;
-    mean_neighborhood = 0.04 ;
     burn_in = 50000 ;
-    selection_coefficient = 0.1 ;
     output_frequencies = false ;
     output_lifespans = false ;
     run_num = 0 ;
@@ -148,9 +131,6 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--us") == 0 ) {
             somatic_rate = atof(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"-d") == 0 ) {
-            duplication_rate = atof(argv[++i]) ;
-        }
         if ( strcmp(argv[i],"--del") == 0 ) { 
             deletion_rate = atof(argv[++i]) ;
         }
@@ -163,20 +143,14 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--start") == 0 ) {
             start_count = atoi(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--min-function") == 0 ) {
-            min_function = atoi(argv[++i]) ;
-        }
-        if ( strcmp(argv[i],"--max-function") == 0 ) {
-            max_function = atoi(argv[++i]) ;
-        }
-        if ( strcmp(argv[i],"-v") == 0 ) {
-            variable = true ;
-        }
         if ( strcmp(argv[i],"--pseudo") == 0 ) {
             pseudogene = true ;
         }
         if ( strcmp(argv[i],"-c") == 0 ) {
             prob_cluster = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--lambda") == 0 ) {
+            lambda_seq = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"-m") == 0 ) {
             map_length = atof(argv[++i]) ;
@@ -184,14 +158,8 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--print") == 0 ) {
             print_count = atoi(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--mn") == 0 ) {
-            mean_neighborhood = atof(argv[++i]) ;
-        }
         if (strcmp(argv[i],"-b") == 0 ) {
             burn_in = atoi(argv[++i]) ;
-        }
-        if (strcmp(argv[i],"--coeff") == 0 ) {
-            selection_coefficient = atof(argv[++i]) ;
         }
         if (strcmp(argv[i],"--run") == 0 ) {
             run_num = atof(argv[++i]) ;
@@ -226,7 +194,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
 
         // model2: two genes, one with lower function but also lower mut rates, no dup/del, no somatic
@@ -235,7 +203,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
 
         // model4: 
@@ -244,7 +212,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
         if ( strcmp(argv[i],"--model4-count") == 0 ) {
             model4_count = atoi(argv[++i]) ;
