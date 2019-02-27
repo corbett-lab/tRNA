@@ -22,6 +22,7 @@ Need to rework a little for memmory efficiency
 #include <utility>
 #include <list>
 #include <random>
+#include <iterator>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -35,10 +36,10 @@ const gsl_rng *rng ;
 #include "trna.h"
 #include "individual.h"
 #include "initialize_population.h"
-#include "assign_function.h"
-#include "neighborhood.h"
+#include "assign_sequence.h"
+#include "nonlocal.h"
+#include "local.h"
 #include "mutate.h"
-#include "function_to_fitness.h"
 #include "fitness.h"
 #include "reproduce.h" 
 #include "stats.h"
@@ -62,18 +63,21 @@ int main ( int argc, char **argv ) {
     gsl_rng_set( rng, (long) options.seed ) ;
     // std::uniform_real_distribution<double> distribution(-7,-4);
 
-    /// for now, setting these to follow distributions of min/max:
+    /////////// for now, setting these to follow distributions of min/max:
     // germline: baseline is 1.45e-8 (narismahan et al), active tRNAs ~10x higher, current range 1e-8 - 1e-5
     // somatic: should be ~10x higher than germline (milholland et al). range for somatic will be between 1 - 100x higher than germline.
-    // deletion: 
-    // duplication: 
-    //
+    // deletion: no idea but maybe give a 4 order of magnitude range in narrowing down
+    // duplication: no idea but maybe give a 4 order of magnitude range in narrowing down
+    /////////////
     // bergman sees ~1 / mil years in drosophila. we have ~90 species-specific tRNAs in humans over 7 million years (maybe overestimate)
     // this is a proxy for deletion and duplication rates though
     // how many duplications did we lose quickly? 
     // look up some more studies on estimates and see what we can get
 
-
+    /// load in all bit score penalties from separate file:
+    std::ifstream is("allPenaltiesPct.txt") ;
+    std::istream_iterator<double> start(is), end ;
+    std::vector<double> mutation_penalties(start, end) ;
 
     /// trna bank
     list<gene*> trna_bank ; 
@@ -95,8 +99,6 @@ int main ( int argc, char **argv ) {
 
     // fitness vector
     double fitness [options.n]  ;
-
-    double total_function_vector [options.n] ;
     
     // evolve the population forward in time
     for ( int g = 1 ; g < options.generations ; g ++ ) {
@@ -105,10 +107,10 @@ int main ( int argc, char **argv ) {
         vector<individual> new_population ( options.n ) ;
                 
         /// somatic and germline mutations
-        mutate( population, options, trna_bank, g, trna_counter ) ;
+        mutate( population, options, trna_bank, g, trna_counter, mutation_penalties ) ;
 
         /// compute fitness
-        compute_fitness( total_function_vector, fitness, population, options ) ;
+        compute_fitness( fitness, population, mutation_penalties, options ) ;
         
         /// reproduce w/ fitness + recombination
         reproduce( fitness, population, new_population, options ) ;
@@ -116,7 +118,8 @@ int main ( int argc, char **argv ) {
         /// swap populations
         swap( population, new_population ) ;
 
-		/// print stats
+		/////// print stats
+        // for first generation give user a quick reminder of what they did:
         if ( g == 1 ){
             cout << "somatic = " << options.somatic_rate ;
             cout << ", germline = " << options.germline_rate ;

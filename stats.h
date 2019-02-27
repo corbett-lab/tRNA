@@ -63,8 +63,8 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
 
         for ( auto t : found ) { 
             if ( t.second > 0 ) {
-                cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).function << "_" ;
-                cout << (*t.first).neighborhood << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << t.second  ;    
+                cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" ;
+                cout << (*t.first).expression << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << t.second  ;    
                 if (t.second > options.n*2) {
                     cout << "\t" << "ERROR\nERROR\nERROR" ;
                     // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.

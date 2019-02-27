@@ -2,10 +2,9 @@
 #define __REPRODUCE_H
 
 
-/// create chromosomes for a parent using haldane's map function 
-
-/// NOTES:
-// what about unequal crossing over?
+// function that creates chromosomes for a parent using haldane's map function
+// will call below
+// TODO: consider unequal crossing over? is our local/nonlocal duplication enough?
 
 void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
 
@@ -17,7 +16,7 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
     float position = 0 ; 
     bool mom = gsl_ran_bernoulli( rng, 0.5 ) ; 
 
-    /// while the positiion is lt both 
+    /// while the position is less than both 
     while ( it_mom < parent.maternal_trnas.size() && it_dad < parent.paternal_trnas.size() ) {
 
         /// both have it at the same site 
@@ -34,6 +33,7 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
             it_mom ++ ;
             it_dad ++ ; 
         } 
+
         /// if it's dad that's next
         else if ( (*parent.maternal_trnas[it_mom]).locus > (*parent.paternal_trnas[it_dad]).locus ) { 
             if ( gsl_ran_bernoulli( rng, ( 1 - exp( -2*(*parent.paternal_trnas[it_dad]).locus - position ) ) / 2 ) ) mom = !mom ; 
@@ -43,6 +43,7 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
             position = (*parent.paternal_trnas[it_dad]).locus ;
             it_dad ++ ; 
         }
+
         /// otherwise, mom is next 
         else  { 
             if ( gsl_ran_bernoulli( rng, ( 1 - exp( -2*(*parent.maternal_trnas[it_mom]).locus - position ) ) / 2 ) ) mom = !mom ; 
@@ -63,7 +64,8 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
         position = (*parent.paternal_trnas[it_dad]).locus ;
         it_dad ++ ; 
     }
-    /// otherwise, mom is next 
+
+    /// otherwise, mom is last
     while ( it_mom < parent.maternal_trnas.size() ) { 
         if ( gsl_ran_bernoulli( rng, ( 1 - exp( -2*(*parent.maternal_trnas[it_mom]).locus - position ) ) / 2 ) ) mom = !mom ; 
         if ( mom ) { 
@@ -75,7 +77,8 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
 
 }
 
-/// compute fitness
+/// NOW create new individuals, choose their parents, and recombine to create new genome using above function!
+/// easy to get mixed up here --- REMEMBER that EACH PARENT has THEIR OWN maternal AND paternal chromosomes!
 void reproduce( const double *fitness, vector<individual> &population, vector<individual> &new_population, cmd_line &options ) {
 
     // populate parent multinomial samplings
@@ -91,7 +94,7 @@ void reproduce( const double *fitness, vector<individual> &population, vector<in
         int mom = gsl_ran_discrete( rng, g ) ;
         int dad = gsl_ran_discrete( rng, g ) ;
 
-        // NOW sort, and by locus, so this might fix the recombination issue:
+        // sort by locus for ease of recombination
         std::sort(population[i].maternal_trnas.begin() , population[i].maternal_trnas.end(), sortByLocus);
         std::sort(population[i].paternal_trnas.begin() , population[i].paternal_trnas.end(), sortByLocus);
                

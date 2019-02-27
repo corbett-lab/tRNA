@@ -13,11 +13,11 @@ public:
     /// the name of the tRNA - just a number unique for that run
     int name ;
     
-    /// function
-    float function ;
+    /// sequence
+    float sequence ;
 
-	// neighborhood impact
-	float neighborhood ;
+	// expression
+	float expression ;
 
     // frequency over time ;
     vector<int> frequency ;
