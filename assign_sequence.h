@@ -23,6 +23,9 @@ void assign_sequence( gene* old_trna, gene* new_trna, vector<double> &mutation_p
 		if ( new_trna->sequence > 1.0 ) {
 			new_trna->sequence = 1.0 ;
 		}
+		else if ( new_trna->sequence < 0.0 ) {
+			new_trna->sequence = 0.0 ;
+		}
 	}
 }
 

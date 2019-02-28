@@ -20,6 +20,9 @@ void local( gene* old_trna, gene* new_trna, cmd_line &options ) {
 	if (new_trna->expression > 1.0) {
 		new_trna->expression = 1.0 ;
 	}
+	else if (new_trna->expression < 0.0) {
+		new_trna->expression = 0.0 ;
+	}
 	new_trna->somatic = options.somatic_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
 	new_trna->germline = options.germline_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
 	new_trna->sequence = old_trna->sequence ;
