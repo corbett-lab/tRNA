@@ -8,7 +8,7 @@ void nonlocal( gene* old_trna, gene* new_trna, cmd_line &options ) {
 
 	// new location is just random place in the genome
     new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
-	new_trna->expression = gsl_ran_beta( rng, 0.220, 0.287 ) ;
+	new_trna->expression = gsl_ran_beta( rng, 0.18411666, 0.34907231 ) ;
 	new_trna->somatic = options.somatic_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
 	new_trna->germline = options.germline_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
 	new_trna->sequence = old_trna->sequence ;
