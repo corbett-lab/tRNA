@@ -10,6 +10,7 @@ To run, simply type ./tRNA
 
 ## List of command line flags:
 
+##### --path: the path to the directory where the allPenaltiesPct.txt file is located (necessary for reading in mutation effects)
 ##### --print: generation printing interval (--print 500 will print every 500 generations, etc.)
 ##### -b: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)
 ##### -n: population size - number of individuals, will be held constant throughout simulation, and each individual is diploid (default: 1,000)

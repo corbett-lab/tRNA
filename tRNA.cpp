@@ -75,7 +75,8 @@ int main ( int argc, char **argv ) {
     // look up some more studies on estimates and see what we can get
 
     /// load in all bit score penalties from separate file:
-    std::ifstream is("allPenaltiesPct.txt") ;
+    cout << options.path + "allPenaltiesPct.txt" << endl;
+    std::ifstream is(options.path + "allPenaltiesPct.txt") ;
     std::istream_iterator<double> start(is), end ;
     std::vector<double> mutation_penalties(start, end) ;
 

@@ -53,6 +53,9 @@ public:
     // won't start printing results until after this generation
     int burn_in ;
 
+    // path to allPenaltiesPct.txt vector file
+    string path ;
+
     // flags to replicate models from paper
     bool model1 ;
     bool model2 ;
@@ -88,15 +91,16 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     somatic_rate = 1e-5 ;
     deletion_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
     duplication_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
+    prob_cluster = 0.5 ; 
+    lambda_seq = -5.0 ;
 
     seed = time(NULL) ;
     start_count = 1 ; 
     pseudogene = false ;
     map_length = 30 ; 
-    prob_cluster = 0.5 ; 
-    lambda_seq = -5.0 ;
     print_count = 1000 ;
     burn_in = 50000 ;
+    path = "" ;
     output_frequencies = false ;
     output_lifespans = false ;
     run_num = 0 ;
@@ -163,6 +167,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if (strcmp(argv[i],"--run") == 0 ) {
             run_num = atof(argv[++i]) ;
+        }
+        if (strcmp(argv[i],"--path") == 0 ) {
+            path = argv[++i] ;
         }
         if ( strcmp(argv[i],"--output-frequencies") == 0 ) {
             output_frequencies = true ;
