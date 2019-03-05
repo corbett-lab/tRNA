@@ -1,26 +1,71 @@
-#ifndef __INDIVIDUAL_CPP
-#define __INDIVIDUAL_CPP
+/*
+ * Individual.cpp
+ *
+ *  Created on: Feb 21, 2019
+ *      Author: jcasaletto
+ */
 
-#include "Gene.h"
 #include "Individual.h"
-#include <vector>
-using namespace std ;
 
-
-// TODO refactor, but how?  here he is only calling out the "collection" of maternal and paternal trna genes, but
-// in general the user may wish to model more than just one gene type --> how about chromosome?
 Individual::Individual() {
+    //genes = vector<Gene>();
 }
+
+Individual::Individual(string n, int s) {
+    this->name = n;
+    this->size = s;
+}
+
+Individual::Individual(const Individual& orig) {
+    
+}
+
 
 Individual::~Individual() {
+	// TODO Auto-generated destructor stub
+
+
 }
 
-vector<Gene*> Individual::getMaternal_trnas() {
-	return this->maternal_trnas;
+int Individual::getSize() {
+	return this->size;
 }
 
-vector<Gene*> Individual::getPaternal_trnas() {
-	return this->paternal_trnas;
+void Individual::setSize(int s) {
+	this->size = s;
 }
 
-#endif
+string Individual::getName() {
+	return this->name;
+}
+
+void Individual::setName(string n) {
+	this->name = n;
+}
+
+vector<Gene*>& Individual::getGenes() {
+	return this->genes;
+}
+
+void Individual::pushback(Gene * g) {
+    this->genes.push_back(g);
+}
+
+void Individual::maternal_pushback(Gene * g) {
+    this->maternal_trnas.push_back(g);
+}
+
+void Individual::paternal_pushback(Gene * g) {
+    this->paternal_trnas.push_back(g);
+} 
+
+vector<Gene*>& Individual::getMaternal_trnas() {
+    return this->maternal_trnas;
+}
+
+vector<Gene*>& Individual::getPaternal_trnas() {
+    return this->paternal_trnas;
+}
+
+
+

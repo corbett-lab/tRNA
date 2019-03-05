@@ -1,52 +1,31 @@
-#ifndef __GENE_H
-#define __GENE_H
+/*
+ * Gene.h
+ *
+ *  Created on: Feb 21, 2019
+ *      Author: jcasaletto
+ */
 
+#ifndef GENE_H_
+#define GENE_H_
 
-// need a way to record mutations and their impacts
-// would also be good to record parent of each gene
 #include <vector>
-using namespace std;
+#include <string>
+using namespace std ;
 
 class Gene {
-public:
-    Gene();
-    ~Gene();
-
-    float getLocus();
-    void setLocus(float l);
-    int getName();
-    void setName(int n);
-    float getFunction();
-    void setFunction(float f);
-    float getNeighborhood();
-    void setNeighborhood(float n);
-    vector<int> getFrequency();
-    //void setFrequency(vector<int> f);
-    float getBirth();
-    void setBirth(float b);
-    float getSomatic();
-    void setSomatic(float s);
-    float getGermline();
-    void setGermline(float g);
-    int getProgenitor();
-    void setProgenitor(int p);
-
-    // sort function
-    bool operator <(const Gene &g1 );
-
 private:
 
-    /// position of the tRNA
+       /// position of the tRNA
     float locus ;
 
     /// the name of the tRNA - just a number unique for that run
     int name ;
     
-    /// function
-    float function ;
+    /// sequence
+    float sequence ;
 
-    // neighborhood impact
-    float neighborhood ;
+    // expression
+    float expression ;
 
     // frequency over time ;
     vector<int> frequency ;
@@ -61,8 +40,45 @@ private:
     // progenitor 
     int progenitor ;
     
+    // sort function
+    
+    
+    
 
+public:
+    Gene();
+    Gene(const Gene& orig);
+    Gene(int n);
+    virtual ~Gene();
+    
+    void setLocus(float l);
+    float getLocus();
+    
+    void setName(int n);
+    int getName();
+    
+    void setExpression(float l);
+    float getExpression();
+    
+    vector<int>& getFrequency();
+    
+    void setBirth(float b);
+    float getBirth();
+    
+    void setSomatic(float s);
+    float getSomatic();
+    
+    void setGermline(float g);
+    float getGermline();
+    
+    void setProgenitor(int p);
+    int getProgenitor();
+    
+    void setSequence(float s);
+    float getSequence();
+    
+    
+    bool operator <(const Gene g1 ) const;
+};
 
-} ;
-
-#endif
+#endif /* GENE_H_ */

@@ -1,39 +1,56 @@
 /*
- * population.h
+ * Population.h
  *
+ *  Created on: Mar 1, 2019
+ *      Author: jcasaletto
  */
 
 #ifndef POPULATION_H_
 #define POPULATION_H_
-
 #include "Individual.h"
-#include <string>
-#include <vector>
-using namespace std ;
-
+#include "CommandLine.h"
+#include <list>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+#include <iostream>
+#include <math.h>
 
 class Population {
 private:
-	string label;
-	int size;
-	vector<Individual> individuals;
+    int size;
+    string name;
+    vector<Individual> individuals;
 
 public:
-	Population(); 
-
-	Population(int n);
-
-	Population(int n, string l);
+	Population();
+        Population(string n);
+        Population(string n, int s, vector<Individual> i);
+        Population(const Population& orig);
 
 	virtual ~Population();
+        
+        string getName();
+        
+        void setName(string n);
+        
+        void pushback(Individual i);
+        
+        vector<Individual>& getIndividuals();
+        
+        void mutate(CommandLine &options, list<Gene*> &trna_bank, int current_gen, int &trna_counter, const gsl_rng rng) ;
+        
+        void update_gene(Gene &new_trna, vector<Gene*> &trnas, int &trna_counter, list<Gene*> &trna_bank, CommandLine &options, int g, int current_gen, const gsl_rng rng);
+       
+        void update_gene_duplicate(Gene &new_trna, vector<Gene*> &trnas, int &trna_counter, list<Gene*> &trna_bank, CommandLine &options, int g, int current_gen, const gsl_rng rng);
+        
+        void assign_function(Gene* old_trna, Gene new_trna, CommandLine &options, const gsl_rng rng);
+        
+        void neighborhood( Gene* old_trna, Gene new_trna, CommandLine &options, const gsl_rng rng );
+        
+        void compute_fitness( double fitness[], CommandLine &options, const gsl_rng rng );       
+        
+ 
 
-	vector<Individual> getIndividuals();
-
-	void setIndividuals(vector<Individual> individuals);
-
-	int getSize();
-
-	void setSize(int n);
 };
 
 #endif /* POPULATION_H_ */

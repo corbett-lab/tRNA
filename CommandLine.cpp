@@ -1,86 +1,31 @@
-#ifndef __CMD_LINE_H
-#define __CMD_LINE_H
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
-/// command line information and global parameters
-class cmd_line {
-public:
-    
-    /// population size, constant for now
-    int n ;
-    
-    /// number of generations
-    int generations ;
-    
-    /// number of genes at start
-    int start_count ;
-    
-    /// min function required for viability
-    double min_function ;
+/* 
+ * File:   CommandLine.cpp
+ * Author: jcasaletto
+ * 
+ * Created on March 3, 2019, 2:52 PM
+ */
 
-    /// max function beyond which fitness = 0
-    double max_function ;
-    
-    /// mutation rates
-    double germline_rate ;
-    double somatic_rate ;
-    
-    /// duplicate and deletion rates
-    double deletion_rate ;
-    double duplication_rate ;
+#include "CommandLine.h"
+using namespace std;
 
-    // start with pseudogene or no
-    bool pseudogene ;
-    
-    /// probability of cluster
-    double prob_cluster ; 
 
-    /// selection coefficient
-    double selection_coefficient ;
+CommandLine::CommandLine() {
+}
 
-    // output frequencies at the end or no
-    bool output_frequencies ;
+CommandLine::CommandLine(const CommandLine& orig) {
+}
 
-    // output lifespans for all tRNAs
-    bool output_lifespans ;
+CommandLine::~CommandLine() {
+}
 
-    /// rng seed
-    int seed ;
 
-    /// map length 
-    double map_length ;
-
-    /// variable mutation/transcription rates
-    /// for now, we'll assume these are correlated 
-    bool variable ;
-
-    // print every __ generations
-    int print_count ;
-
-    // mean proportion of cells in which a portion of the genome is active
-    double mean_neighborhood ;
-
-    // for running many simulations and keeping track of output
-    int run_num ;
-
-    // number of generations to be used for burn_in
-    // won't start printing results until after this generation
-    int burn_in ;
-
-    // flags to replicate models from paper
-    bool model1 ;
-    bool model2 ;
-    bool model4 ;
-    int model4_count ;
-    float model4_deverr ;
-    
-    int model ;
-
-    /// read relevant information
-    void read_cmd_line ( int argc, char *argv[] ) ;
-
-} ;
-
-void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
+void CommandLine::read_cmd_line ( int argc, char *argv[] ) {
     
     /// set parameter defaults
     n = 1000 ;
@@ -99,24 +44,20 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     // for now, let's do 1e-6 to 1e-4 for both
 
-    // TODO externalize all this in a properties file
     germline_rate = 1e-6 ;
-    somatic_rate = germline_rate * 10 ;
+    somatic_rate = 1e-5 ;
     deletion_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
     duplication_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
+    prob_cluster = 0.5 ; 
+    lambda_seq = -5.0 ;
 
     seed = time(NULL) ;
-    min_function = 0 ;
-    max_function = 2 ;
     start_count = 1 ; 
-    variable = false ;
     pseudogene = false ;
     map_length = 30 ; 
-    prob_cluster = 1 ; 
     print_count = 1000 ;
-    mean_neighborhood = 0.04 ;
     burn_in = 50000 ;
-    selection_coefficient = 0.1 ;
+    path = "" ;
     output_frequencies = false ;
     output_lifespans = false ;
     run_num = 0 ;
@@ -135,7 +76,6 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     model4 = false ;
     model4_count = 1 ;
     model4_deverr = 1e-4 ;
-    model = 2;
     
     /// accept command line parameters
     for (int i=1; i<argc; i++) {
@@ -152,9 +92,6 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--us") == 0 ) {
             somatic_rate = atof(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"-d") == 0 ) {
-            duplication_rate = atof(argv[++i]) ;
-        }
         if ( strcmp(argv[i],"--del") == 0 ) { 
             deletion_rate = atof(argv[++i]) ;
         }
@@ -167,20 +104,14 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--start") == 0 ) {
             start_count = atoi(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--min-function") == 0 ) {
-            min_function = atoi(argv[++i]) ;
-        }
-        if ( strcmp(argv[i],"--max-function") == 0 ) {
-            max_function = atoi(argv[++i]) ;
-        }
-        if ( strcmp(argv[i],"-v") == 0 ) {
-            variable = true ;
-        }
         if ( strcmp(argv[i],"--pseudo") == 0 ) {
             pseudogene = true ;
         }
         if ( strcmp(argv[i],"-c") == 0 ) {
             prob_cluster = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--lambda") == 0 ) {
+            lambda_seq = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"-m") == 0 ) {
             map_length = atof(argv[++i]) ;
@@ -188,19 +119,16 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--print") == 0 ) {
             print_count = atoi(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--mn") == 0 ) {
-            mean_neighborhood = atof(argv[++i]) ;
-        }
         if (strcmp(argv[i],"-b") == 0 ) {
             burn_in = atoi(argv[++i]) ;
-        }
-        if (strcmp(argv[i],"--coeff") == 0 ) {
-            selection_coefficient = atof(argv[++i]) ;
         }
         if (strcmp(argv[i],"--run") == 0 ) {
             run_num = atof(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--output-frequencies") == 0 ) {
+        if (strcmp(argv[i],"--path") == 0 ) {
+            path = argv[++i] ;
+        }
+ /*       if ( strcmp(argv[i],"--output-frequencies") == 0 ) {
             output_frequencies = true ;
             std::string frequency_log = "frequencyLog" ;
             frequency_log += std::to_string(run_num) ;
@@ -219,7 +147,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             myfile.open( lifespan_log ) ;
             myfile << "tRNA\tbirth\tdeath\tlifespan\tprogenitor\tfrequencies\n" ;
             myfile.close();
-        }
+        } */
 
         /// replicating models requires changes to other parameters
         // this is last, so model flags overrule everything else!
@@ -230,7 +158,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
 
         // model2: two genes, one with lower function but also lower mut rates, no dup/del, no somatic
@@ -239,7 +167,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
 
         // model4: 
@@ -248,7 +176,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             somatic_rate = 0 ;
             duplication_rate = 0 ;
             deletion_rate = 0 ;
-            start_count = 1 ;
+            start_count = 2 ;
         }
         if ( strcmp(argv[i],"--model4-count") == 0 ) {
             model4_count = atoi(argv[++i]) ;
@@ -263,4 +191,3 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 }
 
 
-#endif
