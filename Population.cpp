@@ -6,6 +6,7 @@
  */
 
 #include "Population.h"
+using namespace std;
 
 Population::Population() {
 	// TODO Auto-generated constructor stub
@@ -138,8 +139,8 @@ void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int curren
     for ( int i = 0 ; i < this->getIndividuals().size() ; i ++ ) {
         // NOW sort, and by locus, so this might fix the recombination issue:
         // NO, next is fitness so we are going to re-sort by function anyway
-        std::sort(this->getIndividuals()[i].maternal_trnas.begin() , this->getIndividuals()[i].maternal_trnas.end());
-        std::sort(this->getIndividuals()[i].paternal_trnas.begin() , this->getIndividuals()[i].paternal_trnas.end()); 
+        sort(this->getIndividuals()[i].maternal_trnas.begin() , this->getIndividuals()[i].maternal_trnas.end());
+        sort(this->getIndividuals()[i].paternal_trnas.begin() , this->getIndividuals()[i].paternal_trnas.end()); 
     }
 
 }

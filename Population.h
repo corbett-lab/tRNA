@@ -14,6 +14,7 @@
 #include <gsl/gsl_rng.h>
 #include <iostream>
 #include <math.h>
+#include <algorithm>
 
 class Population {
 private:
