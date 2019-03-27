@@ -449,7 +449,6 @@ int Simulation::run() {
         
         /// somatic and germline mutations
         this->getPopulation("current").mutate(options, trna_bank, g, trna_counter, *rng ) ;
-        //cout << "bank size after mutate is " << trna_bank.size() << endl;
         
         
         /// compute fitness

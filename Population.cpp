@@ -50,6 +50,11 @@ vector<Individual>& Population::getIndividuals() {
     return this->individuals;
 }
 
+bool Population::sortByLocus(Gene* a, Gene* b) {
+	return (a->getLocus() < b->getLocus());
+}
+
+
 void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int current_gen, int &trna_counter, const gsl_rng rng) {
        // add germline mutations
 
@@ -136,8 +141,11 @@ void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int curren
     for ( int i = 0 ; i < this->getIndividuals().size() ; i ++ ) {
         // NOW sort, and by locus, so this might fix the recombination issue:
         // NO, next is fitness so we are going to re-sort by function anyway
-        sort(this->getIndividuals()[i].maternal_trnas.begin() , this->getIndividuals()[i].maternal_trnas.end());
-        sort(this->getIndividuals()[i].paternal_trnas.begin() , this->getIndividuals()[i].paternal_trnas.end()); 
+        /*sort(this->getIndividuals()[i].maternal_trnas.begin() , this->getIndividuals()[i].maternal_trnas.end());
+        sort(this->getIndividuals()[i].paternal_trnas.begin() , this->getIndividuals()[i].paternal_trnas.end()); */
+        std::sort(this->getIndividuals()[i].maternal_trnas.begin() , this->getIndividuals()[i].maternal_trnas.end(), Population::sortByLocus);
+        std::sort(this->getIndividuals()[i].paternal_trnas.begin() , this->getIndividuals()[i].paternal_trnas.end(), Population::sortByLocus);
+
     }
 
 }

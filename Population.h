@@ -48,7 +48,10 @@ public:
         
         void neighborhood( Gene* old_trna, Gene new_trna, CommandLine &options, const gsl_rng rng );
         
-        void compute_fitness( double fitness[], CommandLine &options, const gsl_rng rng );       
+        void compute_fitness( double fitness[], CommandLine &options, const gsl_rng rng );
+
+        static bool sortByLocus(Gene* a, Gene* b);
+
         
  
 
