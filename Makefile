@@ -9,8 +9,8 @@ all:
 ## IF TCMALLOC IS NOT INSTALLED, COMMENT OUT THE FOLLOWING LINE 
 ## BY PLACING A # IN FRONT OF THE FOLLOWING LINE AND REMOVE '#' ON THE NEXT LINE
 #	$(LINK.cc) -std=c++11  tRNA.cpp $(GFLAG) $(TCFLAGS) $(GSL_LIBS) $(CFLAGS) -o tRNA
-	$(LINK.cc) -O0 -std=c++11 Gene.cpp Individual.cpp Population.cpp CommandLine.cpp Simulation.cpp Driver.cpp $(GFLAG) $(TCFLAGS) $(GSL_LIBS) $(CFLAGS) -o JCTEST
-#	$(LINK.cc) -O0 -std=c++03 *.cpp $(CFLAGS) -o JCTEST
+	#$(LINK.cc) -O0 -std=c++11 Gene.cpp Individual.cpp Population.cpp CommandLine.cpp Simulation.cpp Driver.cpp $(GFLAG) $(TCFLAGS) $(GSL_LIBS) $(CFLAGS) -o JCTEST
+	$(LINK.cc) -O3 -std=c++11 Gene.cpp Individual.cpp Population.cpp CommandLine.cpp Simulation.cpp Driver.cpp $(GSL_LIBS) $(CFLAGS) -o JCTEST
 
 
 ## In many cases, tcmalloc will substantially decrease runtime of SELAM

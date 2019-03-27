@@ -258,7 +258,7 @@ void Simulation::transmit_chromosome ( Individual &parent, vector<Gene*> &new_ch
 }
 
 
-void Simulation::reproduce(const double* fitness, const gsl_rng rng) {
+void Simulation::reproduce(const double* fitness, Population &newPopulation, const gsl_rng rng) {
     
     // populate parent multinomial samplings
     gsl_ran_discrete_t *g = gsl_ran_discrete_preproc( this->getPopulation("current").getIndividuals().size(), fitness ) ;
@@ -281,16 +281,12 @@ void Simulation::reproduce(const double* fitness, const gsl_rng rng) {
         
                
         // get their chromosomes 
-       /* transmit_chromosome( *population[mom], new_ind.getMaternal_trnas() ) ;
-        *
-        transmit_chromosome( *population[dad], new_ind.getPaternal_trnas() ) ; */
 
         transmit_chromosome( this->getPopulation("current").getIndividuals()[mom], new_ind.getMaternal_trnas() , rng) ;
         transmit_chromosome( this->getPopulation("current").getIndividuals()[dad], new_ind.getPaternal_trnas() , rng) ;
 
         // swap individual in
-        //swap( *new_population[i], new_ind ) ;
-        swap( this->getPopulation("new").getIndividuals()[i], new_ind ) ;
+        swap(newPopulation.getIndividuals()[i], new_ind);
         
 
     }
@@ -311,6 +307,7 @@ void Simulation::myswap(vector<Individual>& p1, vector<Individual>& p2) {
 
 void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank, list<float> &trna_lifespans, CommandLine &options ) {
 
+
     float trna_count = 0 ;
     float trna_pseudogenes = 0 ;
     float mean_fitness = 0.0 ;  
@@ -320,10 +317,10 @@ void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank,
 	for ( int p = 0 ; p < this->getPopulation("current").getIndividuals().size() ; p ++ ) { 
 		/// basic counts + fitness stats
 		mean_fitness += fitness[p] ;
-                trna_count += this->getPopulation("current").getIndividuals()[p].getMaternal_trnas().size() + this->getPopulation("current").getIndividuals()[p].getPaternal_trnas().size() ;
+		trna_count += this->getPopulation("current").getIndividuals()[p].getMaternal_trnas().size() + this->getPopulation("current").getIndividuals()[p].getPaternal_trnas().size() ;
+
 
         /// trna specific stats
-
 		for ( int t = 0 ; t < this->getPopulation("current").getIndividuals()[p].getMaternal_trnas().size() ; t ++ ) {
 			found[this->getPopulation("current").getIndividuals()[p].getMaternal_trnas()[t]] ++ ;
 		}
@@ -335,8 +332,9 @@ void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank,
 
 	}
 
-	/// go through and delete all non-existing trnas
+	/// go through and delete all non-existing trna
     /// once a tRNA dies, save its lifespan
+
 
     /// here iterating through tRNA bank. allows access to frequency (attr of tRNA in bank), but not t.second   
     for ( auto t1 = trna_bank.begin(); t1 != trna_bank.end() ; ) {
@@ -360,6 +358,8 @@ void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank,
 
             delete *t1;
             t1 = trna_bank.erase(t1) ;
+
+
         }
         else {
             (*t1)->getFrequency().push_back(found[*t1]);
@@ -372,16 +372,16 @@ void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank,
         cout << mean_fitness/this->getPopulation("current").getIndividuals().size() << "\t" ; 
         cout << trna_count/this->getPopulation("current").getIndividuals().size() << "\t" ;
         cout << trna_bank.size() ;
-
         
-        for ( auto t : found ) { 
+        //for ( auto const& t : found ) {
+        for ( auto t: found ) {
             if ( t.second > 0 ) {
                 cout << "\t" << (*t.first).getName() << "_" << (*t.first).getLocus() << "_" << (*t.first).getSequence() << "_" ;
                 cout << (*t.first).getExpression() << "_" << (*t.first).getBirth() << "_" << (*t.first).getProgenitor() << "_" << t.second  ;    
                 if (t.second > options.n*2) {
                     cout << "\t" << "ERROR\nERROR\nERROR" ;
                     // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.
-                    exit(0);
+                    exit(1);
                 }
             }   
         }
@@ -402,20 +402,6 @@ void Simulation::print_stats ( double fitness[],  int g, list<Gene*> &trna_bank,
 
 
 int Simulation::run() {
-    
-    /*for(int i=0; i< 50; i++) {
-	// instantiate individual on the stack
-        //simulation.getPopulation("newPop").pushback(Individual("bob", i));
-        this->getPopulation("current").pushback(Individual());
-        this->getPopulation("current").getIndividuals()[i].setName("bob");
-        this->getPopulation("current").getIndividuals()[i].setSize(i);
-        for(int j=0; j< this->getPopulation("current").getIndividuals()[i].getSize(); j++){
-            this->getPopulation("current").getIndividuals()[i].pushback(new Gene(j));
-            cout << this->getPopulation("current").getIndividuals()[i].getGenes().back()->getName() << endl;
-        }
-        cout << this->getPopulation("current").getIndividuals()[i].getName() << "\n";
-        cout << this->getPopulation("current").getIndividuals()[i].getSize() << "\n";     
-    }*/
     
     
         //// for calculating runtime of code
@@ -445,14 +431,13 @@ int Simulation::run() {
     // initialize trna_bank
     this->initialize(options, trna_counter, *rng);
     /// now copy to population of size n
-
     for ( int i = 0 ; i < this->getPopulation("current").getIndividuals().size() ; i ++ ) { 
     	for ( auto t : this->trna_bank ) { 
             this->getPopulation("current").getIndividuals()[i].getMaternal_trnas().push_back(t);
             this->getPopulation("current").getIndividuals()[i].getPaternal_trnas().push_back(t);
     	}
     } 
-    
+
 
 
     
@@ -464,21 +449,23 @@ int Simulation::run() {
         
         /// somatic and germline mutations
         this->getPopulation("current").mutate(options, trna_bank, g, trna_counter, *rng ) ;
-        
-
+        //cout << "bank size after mutate is " << trna_bank.size() << endl;
         
         
         /// compute fitness
         this->getPopulation("current").compute_fitness( fitness, options, *rng ) ;
-    
+
         
         /// reproduce w/ fitness + recombination
-        this->reproduce(fitness, *rng) ;
- 
+        vector<Individual> newIndividuals;
+        Population newPopulation = Population("new", options.n, newIndividuals);
+        this->reproduce(fitness, newPopulation, *rng) ;
 
       
         /// swap populations
-        swap( this->getPopulation("current").getIndividuals(), this->getPopulation("new").getIndividuals() ) ;
+
+        //swap( this->getPopulation("current").getIndividuals(), this->getPopulation("new").getIndividuals() ) ;
+        swap( this->getPopulation("current").getIndividuals(), newPopulation.getIndividuals() ) ;
 
 
 		/////// print stats
@@ -489,6 +476,7 @@ int Simulation::run() {
             cout << ", dup = " << options.duplication_rate ;
             cout << ", del = " << options.deletion_rate << endl ;
         }
+
 
         print_stats( fitness, g, trna_bank, trna_lifespans, options ) ;
 

@@ -37,7 +37,7 @@ public:
     void initialize( CommandLine &options, int &trna_counter, const gsl_rng rng );
     void initializeGene(CommandLine &options, Gene* g, double function, int neighborhood, int progenitor, int birth, double somatic, double germline, const gsl_rng rng);
     void storeInfo(Gene* g, int &counter);
-    void reproduce( const double* fitness, const gsl_rng rng) ;
+    void reproduce( const double* fitness, Population &newPopulation, const gsl_rng rng) ;
     void transmit_chromosome ( Individual &parent, vector<Gene*> &new_chromosome, const gsl_rng rng);
     void myswap(vector<Individual>& p1, vector<Individual>& p2);
     void print_stats ( double fitness[], int g, list<Gene*> &trna_bank, list<float> &trna_lifespans, CommandLine &options );

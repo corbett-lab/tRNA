@@ -80,9 +80,7 @@ void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int curren
 
     for ( int i = 0 ; i < this->getIndividuals().size() ; i ++ ) {
         for ( int g = 0 ; g < this->getIndividuals()[i].maternal_trnas.size() ; g ++ ) {
-            //if ( gsl_ran_bernoulli( rng, population[i]->maternal_trnas[g]->germline ) ) {
-        	if (true) {
-            	
+        	if ( gsl_ran_bernoulli(&rng, this->getIndividuals()[i].maternal_trnas[g]->getGermline())) {
             	Gene* new_trna = new Gene;
             	update_gene(*new_trna, this->getIndividuals()[i].maternal_trnas, trna_counter, trna_bank, options, g, current_gen, rng);
 
@@ -101,20 +99,18 @@ void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int curren
     for ( int i = 0 ; i < this->getIndividuals().size() ; i ++ ) {
         for ( int g = 0 ; g < this->getIndividuals()[i].maternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( &rng, options.duplication_rate ) ) {
-                
                 /// copy current gene copy
                 Gene* new_trna = new Gene;
             	update_gene_duplicate(*new_trna, this->getIndividuals()[i].maternal_trnas, trna_counter, trna_bank, options, g, current_gen, rng);
-
             }
         }
 
         for ( int g = 0 ; g < this->getIndividuals()[i].paternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( &rng, options.duplication_rate ) ) {
-                
                 /// copy current gene copy
                 Gene* new_trna = new Gene;
             	update_gene_duplicate(*new_trna, this->getIndividuals()[i].paternal_trnas, trna_counter, trna_bank, options, g, current_gen, rng);
+
 
             }
         }
@@ -130,6 +126,7 @@ void Population::mutate(CommandLine &options, list<Gene*> &trna_bank, int curren
         for ( int g = this->getIndividuals()[i].paternal_trnas.size() -1 ; g > -1 ; g -- ) {
             if ( gsl_ran_bernoulli( &rng, options.deletion_rate ) ) {
                 this->getIndividuals()[i].paternal_trnas.erase( this->getIndividuals()[i].paternal_trnas.begin() + g ) ;
+
             }
         }
     }
@@ -158,12 +155,13 @@ void Population::update_gene(Gene &new_trna, vector<Gene*> &trnas, int &trna_cou
     new_trna.setName(trna_counter);
     trna_bank.push_back( &new_trna ) ;
     trnas[g] = &new_trna ;
+    //trnas.push_back( &new_trna);
 }
 
 
 
 void Population::update_gene_duplicate(Gene &new_trna, vector<Gene*> &trnas, int &trna_counter, list<Gene*> &trna_bank, CommandLine &options, int g, int current_gen, const gsl_rng rng) {
-	 if ( gsl_ran_bernoulli( &rng, 0.5 ) or (trnas[g]->getLocus() + 1 > options.map_length) ) {
+	if ( gsl_ran_bernoulli( &rng, 0.5 ) or (trnas[g]->getLocus() + 1 > options.map_length) ) {
 		 new_trna.setLocus(trnas[g]->getLocus() - gsl_rng_uniform( &rng )) ;
 	 }
 	 else{
@@ -212,6 +210,8 @@ void Population::assign_function( Gene* old_trna, Gene new_trna, CommandLine &op
 	// mutations should get rid of some function but not affect expression most likely
 	// from the classifier, expression levels are pretty static!
 	// TODO: replace the arbitrary 0.05 penalty with actual bit score penalties
+
+        // TODO does this reflect the paragraph above?
 
 	else {
 		if ( old_trna->getSequence() < 0.05 ){
