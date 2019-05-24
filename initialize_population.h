@@ -18,14 +18,16 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
-            new_trna->sequence = 1 ; 
-            new_trna->expression = 0 ;
+            new_trna->sequence = 1.0 ; 
+            new_trna->expression = 1.0 ;
             new_trna->progenitor = 0 ;
             new_trna->birth = 0 ;
-            new_trna->frequency.push_back( 0 ) ;
+            new_trna->muts = 0 ;
+            // new_trna->frequency.push_back( 0 ) ;
             /// mutation rates -- no somatic under model 1
             new_trna->somatic = 0 ;
             new_trna->germline = options.germline_rate ;  
+            new_trna->birth_mode = 'f' ;
             // store full info in our vector of trnas
             trna_counter ++ ;
             new_trna->name = trna_counter ;
@@ -47,13 +49,15 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
         trna1->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
         /// first gene has higher function but also higher mutation rate (will reach an equilibrium)
         trna1->sequence = 1.0 ; 
-        trna1->expression = 0 ;
+        trna1->expression = 1.0 ;
         trna1->progenitor = 0 ;
         trna1->birth = 0 ;
-        trna1->frequency.push_back( 0 ) ;
+        trna1->muts = 0 ;
+        // trna1->frequency.push_back( 0 ) ;
         /// mutation rates -- no somatic under model 2
         trna1->somatic = 0 ;
         trna1->germline = options.germline_rate ;  
+        trna1->birth_mode = 'f' ;
         // store full info in our vector of trnas
         trna_counter ++ ;
         trna1->name = trna_counter ;
@@ -65,14 +69,16 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
         // make it so that it isn't at either end of the chromosome!
         trna2->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
         /// second gene has lower function but also lower mutation rate (will reach an equilibrium)
-        trna2->sequence = 0.8 ; 
-        trna2->expression = 0 ;
+        trna2->sequence = 0.9 ; 
+        trna2->expression = 1.0 ;
         trna2->progenitor = 0 ;
         trna2->birth = 0 ;
-        trna2->frequency.push_back( 0 ) ;
+        trna2->muts = 0 ;
+        // trna2->frequency.push_back( 0 ) ;
         /// mutation rates -- no somatic under model 2
         trna2->somatic = 0 ;
-        trna2->germline = options.germline_rate / 100 ;  
+        trna2->germline = options.germline_rate / 10 ;  
+        trna2->birth_mode = 'f' ;
         // store full info in our vector of trnas
         trna_counter ++ ;
         trna2->name = trna_counter ;
@@ -93,14 +99,16 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
-            new_trna->sequence = 1 ; 
-            new_trna->expression = 0 ;
+            new_trna->sequence = 1.0 ; 
+            new_trna->expression = 1.0 ;
             new_trna->progenitor = 0 ;
             new_trna->birth = 0 ;
-            new_trna->frequency.push_back( 0 ) ;
+            new_trna->muts = 0 ;
+            // new_trna->frequency.push_back( 0 ) ;
             /// mutation rates -- somatic modeled differently under model 4 so set to 0 here
             new_trna->somatic = 0 ;
-            new_trna->germline = options.germline_rate ;  
+            new_trna->germline = options.germline_rate ; 
+            new_trna->birth_mode = 'f' ; 
             // store full info in our vector of trnas
             trna_counter ++ ;
             new_trna->name = trna_counter ;
@@ -124,15 +132,17 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
 
             /// starting conditions:
-            new_trna->sequence = 1 ; 
-            new_trna->expression = 1 ;
+            new_trna->sequence = 1.0 ; 
+            new_trna->expression = 1.0 ;
             new_trna->progenitor = 0 ;
             new_trna->birth = 0 ;
-            new_trna->frequency.push_back( 0 ) ;
+            new_trna->muts = 0 ;
+            // new_trna->frequency.push_back( 0 ) ;
 
             /// mutation rates :
-            new_trna->somatic = options.somatic_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
-            new_trna->germline = options.germline_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;  
+            new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            new_trna->germline = options.germline_rate * ((11.8898 * (pow(new_trna->expression, 0.7415))) + 1.3932) ;  
+            new_trna->birth_mode = 'f' ;
 
             // store full info in our vector of trnas
             trna_counter ++ ;
@@ -157,15 +167,17 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
 
             /// this should probably be defined by some starting conditions
-            new_trna->sequence = 0 ; 
-            new_trna->expression = 0 ;
+            new_trna->sequence = 0.0 ; 
+            new_trna->expression = 0.0 ;
             new_trna->progenitor = 0 ;
             new_trna->birth = 0 ;
-            new_trna->frequency.push_back( 0 ) ;
+            new_trna->muts = 0 ;
+            // new_trna->frequency.push_back( 0 ) ;
 
             /// mutation rates 
-            new_trna->somatic = options.somatic_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ;
-            new_trna->germline = options.germline_rate * ((13.0 * (pow(new_trna->expression, 0.42))) + 1.0) ; ;  
+            new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            new_trna->germline = options.germline_rate * ((11.8898 * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            new_trna->birth_mode = 'f' ;  
 
             // store full info in our vector of trnas
             trna_counter ++ ;

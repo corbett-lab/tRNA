@@ -1,7 +1,7 @@
 #ifndef __ASSIGN_SEQUENCE_H
 #define __ASSIGN_SEQUENCE_H
 
-void assign_sequence( gene* old_trna, gene* new_trna, vector<double> &mutation_penalties, cmd_line &options ) {
+void assign_sequence( gene* old_trna, gene* new_trna, std::map<int, vector<double>> &mutations_to_function, cmd_line &options ) {
 
 	// this is called in the germline block of mutate.h
 	// we read in mutational_penalties in tRNA.cpp
@@ -14,18 +14,28 @@ void assign_sequence( gene* old_trna, gene* new_trna, vector<double> &mutation_p
 	// in the models, all mutations are assumed to be completely inactivating!
 	if ( ( options.model1 == true ) or ( options.model2 == true ) or ( options.model4 == true ) ) {
 		new_trna->sequence = 0 ;
+		new_trna->muts = old_trna->muts + 1 ;
 	}
 
-	// otherwise, we draw a random mutation penalty from the read-in distribution
+	// otherwise, we look in the distribution for that tRNA's number of mutations and grab a new sequence function assignment
 	else {
-		int random_index = rand() % mutation_penalties.size() ;
-		new_trna->sequence = (old_trna->sequence + mutation_penalties[random_index]) ;
-		if ( new_trna->sequence > 1.0 ) {
-			new_trna->sequence = 1.0 ;
+		new_trna->muts = old_trna->muts + 1 ;
+		if ( new_trna->muts < options.max_mutations ) {
+			int random_index = rand() % (mutations_to_function[new_trna->muts]).size() ;
+			if ( ((mutations_to_function[new_trna->muts])[random_index]) <= new_trna->sequence ){
+				new_trna->sequence = ((mutations_to_function[new_trna->muts])[random_index]) ;
+			}
+		    if ( new_trna->sequence > 1.0 ) {
+		    	new_trna->sequence = 1.0 ;
+		    }
+		    if ( new_trna->sequence < 0.0 ) {
+		    	new_trna->sequence = 0.0 ;
+		    }
 		}
-		else if ( new_trna->sequence < 0.0 ) {
+		else {
 			new_trna->sequence = 0.0 ;
 		}
+		
 	}
 }
 

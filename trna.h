@@ -8,7 +8,7 @@ class gene {
 public:
 
     /// position of the tRNA
-    float locus ;
+    double locus ;
 
     /// the name of the tRNA - just a number unique for that run
     int name ;
@@ -20,7 +20,7 @@ public:
 	float expression ;
 
     // frequency over time ;
-    vector<int> frequency ;
+    // vector<int> frequency ;
 
     // generation when gene was first seen
     float birth ;  
@@ -31,6 +31,15 @@ public:
 
     // progenitor 
     int progenitor ;
+
+    // mode of birth (helps for traceback)
+    char birth_mode ;
+
+    // indel rate
+    // float indel ;
+
+    // number of mutations accumulated by this tRNA
+    int muts ;
     
     // sort function
     bool operator <(const gene &g1 ) {

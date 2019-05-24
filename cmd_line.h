@@ -13,6 +13,19 @@ public:
     
     /// number of genes at start
     int start_count ;
+
+    // flag to use gaussian fitness function (default) or exponential
+    string fitness_func ;
+
+    // fitness redundant fitting parameters
+    float min_fitness ;
+
+    // fitness gaussian fitting parameters
+    float fitness_mean ;
+    float fitness_sd ;
+
+    // fitness exponential fitting parameters
+    float fitness_lambda ;
     
     /// mutation rates
     double germline_rate ;
@@ -25,17 +38,26 @@ public:
     // start with pseudogene or no
     bool pseudogene ;
     
-    /// probability of cluster
+    /// proportion of duplications that are local
     double prob_cluster ; 
 
-    /// to be used in mapping sequence to fitness
-    double lambda_seq ;
+    /// proportion of LOCAL duplications that are SEG DUPS
+    double prob_segdup ; 
 
-    // output frequencies at the end or no
-    bool output_frequencies ;
+    /// rate at which gene conversion events occur
+    double gene_conversion_rate ; 
 
     // output lifespans for all tRNAs
     bool output_lifespans ;
+
+    // output sample data
+    bool sample ;
+
+    // sample how many generations
+    int sampling_frequency ;
+
+    // sample how many individuals each time
+    int sampling_count ;
 
     /// rng seed
     int seed ;
@@ -46,6 +68,15 @@ public:
     // print every __ generations
     int print_count ;
 
+    // quiet mode (don't print all individual tRNAs every time)
+    bool quiet ;
+
+    // coefficient for relating tRNA gene expression to somatic mutation rate
+    double somatic_coefficient ;
+
+    // max number of mutations a tRNA is allowed to have before it is no longer a tRNA
+    int max_mutations ;
+
     // for running many simulations and keeping track of output
     int run_num ;
 
@@ -53,7 +84,7 @@ public:
     // won't start printing results until after this generation
     int burn_in ;
 
-    // path to allPenaltiesPct.txt vector file
+    // path to fitness values for each number of mutations files
     string path ;
 
     // flags to replicate models from paper
@@ -75,10 +106,31 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     generations = 1000000 ;
 
     /// for now, setting these to follow distributions of min/max:
-    // germline: baseline is 1.45e-8 (narismahan et al), active tRNAs ~10x higher, current range 1e-8 - 1e-5
-    // somatic: should be ~10x higher than germline (milholland et al). range for somatic will be between 1 - 100x higher than germline.
-    // deletion: 
-    // duplication: 
+    //
+    // germline: baseline is 1.45e-8 (narasimhan et al) +- 0.05*1e-8 [1.4e-8..1.5e-8] per base pair per generation
+    //              but we can scale this for each tRNA by multiplying by 70: [9.8e-7..1.05e-6]
+    //              use 1e-6
+    //
+    // somatic:  baseline is 2.8e-7 (milholland et al) 
+    //              scaled the same way: 1.96e-5
+    //
+    // deletion: calculated using DGV data, 95% confidence interval = [0.00709368, 0.01064052] for theta
+    //              divide by 4*Ne (40,000) to get [1.77342e-7, 2.66013e-7]
+    //              use 2e-7
+    // duplication: calculated using DGV data, 95% confidence interval = [0.00771959, 0.01074484] for theta
+    //              divide by 4*Ne (40,000) to get [1.9298975e-7, 2.68621e-7]
+    //              use 2e-7
+
+    // TO FIT TO:
+    //      - extremely low dup/del rates per million years (0.008, 0.009, etc.)
+    //      - a proper fit would mean very little change overall over the course of the simulation from the start
+    //
+    // TO DO:
+    //      - identify parameter sets that result in steady states with little to no variation
+    //      - should end up being slightly different depending on how much expression you really want
+    //      -- vary start counts and try both fitness functions? parameters unlikely to vary much by gene family 
+    //      -- so maybe just min_fitness or even just variation of the model function??
+
     //
     // bergman sees ~1 / mil years in drosophila. we have ~90 species-specific tRNAs in humans over 7 million years (maybe overestimate)
     // this is a proxy for deletion and duplication rates though
@@ -88,11 +140,39 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     // for now, let's do 1e-6 to 1e-4 for both
 
     germline_rate = 1e-6 ;
-    somatic_rate = 1e-5 ;
-    deletion_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
-    duplication_rate = 1e-5 ; // + (gsl_rng_uniform( rng ) * 100) ;
-    prob_cluster = 0.5 ; 
-    lambda_seq = -5.0 ;
+    somatic_rate = 1.96e-5 ;
+    deletion_rate = 3.5e-6 ; 
+    duplication_rate = 3.5e-6 ; 
+    prob_cluster = 0.6 ; 
+    prob_segdup = 0.25 ;
+    gene_conversion_rate = 1e-7 ;
+
+    // sampling parameters
+    sample = false ;
+    sampling_frequency = 10000 ;
+    sampling_count = 10 ;
+
+    // quiet flag
+    quiet = false ;
+
+    // coefficient for relating tRNA gene expression to somatic mutation rate
+    // default is the same as germline
+    somatic_coefficient = 11.8898 ;
+
+    // maximum number of SNPs a tRNA is allowed to have before it is no longer a tRNA gene
+    max_mutations = 10 ;
+
+    // fitness fitting parameters -- redundant
+    min_fitness = 6.0 ;
+
+    // fitness fitting parameters -- gaussian
+    fitness_mean = 10.52110756 ;
+    fitness_sd = fitness_mean/4.0 ;
+
+    // fitness fitting parameters -- exponential
+    fitness_lambda = -15.0 ;
+
+    fitness_func = "redundant" ;
 
     seed = time(NULL) ;
     start_count = 1 ; 
@@ -100,8 +180,8 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     map_length = 30 ; 
     print_count = 1000 ;
     burn_in = 50000 ;
-    path = "" ;
-    output_frequencies = false ;
+    path = "/Users/Bryan/Desktop/simulator_github/" ;
+    // output_frequencies = false ;
     output_lifespans = false ;
     run_num = 0 ;
 
@@ -150,17 +230,50 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--pseudo") == 0 ) {
             pseudogene = true ;
         }
-        if ( strcmp(argv[i],"-c") == 0 ) {
+        if ( strcmp(argv[i],"--local") == 0 ) {
             prob_cluster = atof(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"--lambda") == 0 ) {
-            lambda_seq = atof(argv[++i]) ;
+        if ( strcmp(argv[i],"--segdup") == 0 ) {
+            prob_segdup = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--geneconv") == 0 ) {
+            gene_conversion_rate = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--sample") == 0 ) {
+            sample = true ;
+        }
+        if ( strcmp(argv[i],"--sample-freq") == 0 ) {
+            sampling_frequency = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--sample-count") == 0 ) {
+            sampling_count = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--min-fitness") == 0 ) {
+            min_fitness = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--fitmean") == 0 ) {
+            fitness_mean = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--fitsd") == 0 ) {
+            fitness_sd = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--fitlambda") == 0 ) {
+            fitness_lambda = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"-m") == 0 ) {
             map_length = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"--print") == 0 ) {
             print_count = atoi(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--quiet") == 0 ) {
+            quiet = true ;
+        }
+        if ( strcmp(argv[i],"--somatic-coefficient") == 0 ) {
+            somatic_coefficient = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--max-mutations") == 0 ) {
+            max_mutations = atof(argv[++i]) ;
         }
         if (strcmp(argv[i],"-b") == 0 ) {
             burn_in = atoi(argv[++i]) ;
@@ -171,25 +284,11 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if (strcmp(argv[i],"--path") == 0 ) {
             path = argv[++i] ;
         }
-        if ( strcmp(argv[i],"--output-frequencies") == 0 ) {
-            output_frequencies = true ;
-            std::string frequency_log = "frequencyLog" ;
-            frequency_log += std::to_string(run_num) ;
-            frequency_log += ".txt" ;
-            ofstream myfile;
-            myfile.open( frequency_log ) ;
-            myfile << "tRNA\tbirth\tprogenitor\tfrequencies\n" ;
-            myfile.close();
+        if (strcmp(argv[i],"--function") == 0 ) {
+            fitness_func = argv[++i] ;
         }
         if ( strcmp(argv[i],"--output-lifespans") == 0 ) {
             output_lifespans = true ;
-            std::string lifespan_log = "lifespanLog" ;
-            lifespan_log += std::to_string(run_num) ;
-            lifespan_log += ".txt" ;
-            ofstream myfile;
-            myfile.open( lifespan_log ) ;
-            myfile << "tRNA\tbirth\tdeath\tlifespan\tprogenitor\tfrequencies\n" ;
-            myfile.close();
         }
 
         /// replicating models requires changes to other parameters
@@ -202,6 +301,8 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             duplication_rate = 0 ;
             deletion_rate = 0 ;
             start_count = 2 ;
+            gene_conversion_rate = 0 ;
+            fitness_func = "model" ;
         }
 
         // model2: two genes, one with lower function but also lower mut rates, no dup/del, no somatic
@@ -211,6 +312,8 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             duplication_rate = 0 ;
             deletion_rate = 0 ;
             start_count = 2 ;
+            gene_conversion_rate = 0 ;
+            fitness_func = "model" ;
         }
 
         // model4: 
@@ -220,6 +323,8 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
             duplication_rate = 0 ;
             deletion_rate = 0 ;
             start_count = 2 ;
+            gene_conversion_rate = 0 ;
+            fitness_func = "model" ;
         }
         if ( strcmp(argv[i],"--model4-count") == 0 ) {
             model4_count = atoi(argv[++i]) ;

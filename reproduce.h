@@ -80,8 +80,7 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
 /// NOW create new individuals, choose their parents, and recombine to create new genome using above function!
 /// easy to get mixed up here --- REMEMBER that EACH PARENT has THEIR OWN maternal AND paternal chromosomes!
 void reproduce( const double *fitness, vector<individual> &population, vector<individual> &new_population, cmd_line &options ) {
-
-    // populate parent multinomial samplings
+    
     gsl_ran_discrete_t *g = gsl_ran_discrete_preproc( population.size(), fitness ) ;
 
     /// iterate through all individuals and draw parents + recomb

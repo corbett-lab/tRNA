@@ -1,7 +1,7 @@
 #ifndef __STATS_H
 #define __STATS_H
 
-void print_stats ( double fitness[], const vector<individual> &population, int g, list<gene*> &trna_bank, list<float> &trna_lifespans, cmd_line &options ) {
+void print_stats ( double fitness[], const vector<individual> &population, int g, list<gene*> &trna_bank, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
     
     float trna_count = 0 ;
     float trna_pseudogenes = 0 ;
@@ -30,56 +30,66 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
     /// here iterating through tRNA bank. allows access to frequency (attr of tRNA in bank), but not t.second
 	for ( auto t = trna_bank.begin(); t != trna_bank.end() ; ) { 
 		if ( !found[*t] ) { 
-            trna_lifespans.push_back( g - (*t)->birth ) ;
-            (*t)->frequency.push_back( 0 ) ;
-
-            if ( (options.output_lifespans == true) and (g > options.burn_in) ){
-                std::string lifespan_log = "lifespanLog";
-                lifespan_log += std::to_string(options.run_num);
-                lifespan_log += ".txt" ;
-                ofstream myfile;
-                myfile.open( lifespan_log, fstream::app ) ;
-                myfile << (*t)->name << "\t" << (*t)->birth << "\t" << g << "\t" << g - (*t)->birth << "\t" << (*t)->progenitor << "\t" ;
-                for ( int i = 1 ; i < (*t)->frequency.size() ; i ++ ) {
-                        myfile << (*t)->frequency[i] << "," ;
-                    }
-                    myfile << endl ;
-                myfile.close();
+            /// if not this lifespan already in the dictionary, add it in
+            if ( !lifespan_to_count.count( g - (*t)->birth ) ){
+                lifespan_to_count.insert( std::pair<int,int> ( g-(*t)->birth, 0 ) ) ;
             }
+            lifespan_to_count[ g - (*t)->birth ] += 1 ;
+            // (*t)->frequency.push_back( 0 ) ;
 			delete *t ;
 			t = trna_bank.erase(t) ; 			
 		}
 		else {
-            (*t)->frequency.push_back(found[*t]) ;
+            // (*t)->frequency.push_back(found[*t]) ;
 			t ++ ; 
 		}
 	}
 
-    if ( g == 1 or ( g > options.burn_in and g % options.print_count == 0 ) ) {
+    if ( g == 1 or ( g > options.burn_in and g % options.print_count == 0 ) or ( g == options.generations ) ) {
+
         cout << g << "\t" ;
         cout << mean_fitness/population.size() << "\t" ; 
         cout << trna_count/population.size() << "\t" ;
         cout << trna_bank.size() ;
 
-        for ( auto t : found ) { 
-            if ( t.second > 0 ) {
-                cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" ;
-                cout << (*t.first).expression << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << t.second  ;    
-                if (t.second > options.n*2) {
-                    cout << "\t" << "ERROR\nERROR\nERROR" ;
-                    // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.
-                    exit(0);
-                }
-            }   
+        if ( options.quiet == false ){
+            for ( auto t : found ) { 
+                if ( t.second > 0 ) {
+                    cout.precision(8) ;
+                    cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" << (*t.first).expression ;
+                    cout << "_" << (*t.first).muts << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << (*t.first).birth_mode << "_" << t.second  ;    
+                    if (t.second > options.n*2) {
+                        cout << "\t" << "A tRNA HAS BEEN FOUND ON MORE CHROMOSOMES THAN THERE ARE CHROMOSOMES. EXITING PROGRAM." << endl ;
+                        // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.
+                        exit(0);
+                    }
+                }   
+            }
         }
         cout << endl ; 
-
     }
-    
-    
 
-    // // DEBUGGING:
+    /// OUTPUT LIFESPAN DISTRIBUTION
+    if ( g == options.generations ){
 
+        // first get extant tRNAs at the end
+        for ( auto t : found ) { 
+            if ( !lifespan_to_count.count( g - (*t.first).birth ) ){
+                lifespan_to_count.insert( std::pair<int,int> ( g - (*t.first).birth, 0 ) ) ;
+            }
+            lifespan_to_count[ g - (*t.first).birth ] += 1 ;
+        }
+
+        // then output your lifespan map to a file
+        if ( options.output_lifespans == true ){
+            std::string lifespan_log = "lifespanLog" + std::to_string(options.run_num) + ".txt" ;
+            ofstream stream( lifespan_log ) ;
+            for ( auto t : lifespan_to_count ) {
+                stream << t.first << "\t" << t.second << "\n" ;
+            }
+            stream.close() ;
+        }
+    }
 
 }
 
