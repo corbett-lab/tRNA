@@ -16,10 +16,10 @@ To run, simply type ./tRNA
 **-m**: length of genome in morgans (default: 30.0)  
 
 **--print**: generation printing interval (--print 500 will print every 500 generations, etc.)
-**-b**: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)
-**--path**: the path to the directory where the functionDists directory is located (necessary for reading in mutation effects)
-**-s**: seed, to ensure non-unique results on many simulations begun at the same time
-**--run**: run name, to name folders for optional output of each run
+**-b**: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)  
+**--path**: the path to the directory where the functionDists directory is located (necessary for reading in mutation effects)  
+**-s**: seed, to ensure non-unique results on many simulations begun at the same time  
+**--run**: run name, to name folders for optional output of each run  
 **--sample**: whether or not you want to sample individuals from the population (default: false)  
 **--sample-freq**: sample every ____ generations (default: 10,000)  
 **--sample-count**: sample ____ individuals each time (default: 10)  
@@ -46,13 +46,11 @@ To run, simply type ./tRNA
 #### The following are based on the Nowak paper linked above:
 
 **--model-1**:
-Two tRNAs initially, with exactly the same mutation rate and function. All mutations are completely inactivating. No somatic mutations, duplications or deletions are possible.
-
+Two tRNAs initially, with exactly the same mutation rate and function. All mutations are completely inactivating. No somatic mutations, duplications or deletions are possible.  
 **--model-2**:
-Two tRNAs, one with function = 1 and mutation rate = --ug; one with function = 0.8 and mutation rate = --ug / 100. All mutations are completely inactivating. No somatic mutations, duplications or deletions are possible.
-
+Two tRNAs, one with function = 1 and mutation rate = --ug; one with function = 0.8 and mutation rate = --ug / 100. All mutations are completely inactivating. No somatic mutations, duplications or deletions are possible.  
 **--model-4**:
-Any number of tRNAs, each with function = 1 and mutation rate == --ug, but somatic mutation rates are now possible. When invoking this model, individual fitness = 1 - ((developmental error rate)^(number of functional tRNA genes)). See Nowak paper for more detailed explanation.
+Any number of tRNAs, each with function = 1 and mutation rate == --ug, but somatic mutation rates are now possible. When invoking this model, individual fitness = 1 - ((developmental error rate)^(number of functional tRNA genes)). See Nowak paper for more detailed explanation.  
 **--model-4-count**: number of tRNA genes in genome initially in addition to --start value (only used with --model-4; default = 1).  
 **--model-4-deverr**: developmental error rate (only used with --model-4; default = 1e-4).  
 
