@@ -10,25 +10,40 @@ To run, simply type ./tRNA
 
 ## List of command line flags:
 
-##### --path: the path to the directory where the allPenaltiesPct.txt file is located (necessary for reading in mutation effects)
+##### -n: number of diploid individuals in population, will be held constant throughout simulation (default: 10,000)
+##### -g: number of generations for simulation to run (default: 10,000,000)
+##### --start: number of tRNA genes in the genome initially (default: 1)
+##### -m: length of genome in morgans (default: 30.0)
+
 ##### --print: generation printing interval (--print 500 will print every 500 generations, etc.)
 ##### -b: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)
-##### -n: population size - number of individuals, will be held constant throughout simulation, and each individual is diploid (default: 1,000)
-##### -g: number of generations for simulation to run (default: 1,000,000)
-##### --ug: germline mutation rate (default: 1e-6)
-##### --us: somatic mutation rate (default: 1e-5)
-##### --dup: duplication rate
-##### --del: deletion rate
+##### --path: the path to the directory where the functionDists directory is located (necessary for reading in mutation effects)
 ##### -s: seed, to ensure non-unique results on many simulations begun at the same time
-##### --start: number of tRNA genes in the genome initially (default: 1)
-##### --pseudo: begin with a tRNA pseudogene in addition to the number of functional tRNA genes
-##### -c: fraction of duplications that are local (default: 1)
-##### -m: length of chromosome in morgans
-##### --run: name of a run, to name folders for optional output of each run
-##### --output-frequencies: outputs frequency log file, which contains frequencies over time of each tRNA present at the end of the simulation
-##### --output-lifespans: outputs lifespan log file, which contains frequency and lifespan data for all tRNAs created during the simulation
+##### --run: run name, to name folders for optional output of each run
+##### --sample: whether or not you want to sample individuals from the population (default: false)
+##### --sample-freq: sample every ____ generations (default: 10,000)
+##### --sample-count: sample ____ individuals each time (default: 10)
+##### --quiet: use if you are not interested in printing every tRNA's stats every time (default: false)
+##### --output-lifespans: outputs lifespan log file, which contains lifespan data for all tRNAs created during the simulation (default: false)
 
-The following are based on the Nowak paper linked above:
+##### --ug: baseline germline mutation rate (default: 1e-6)
+##### --us: baseline somatic mutation rate (default: 1.96e-5)
+##### --del: deletion rate (default: 3.63e-6)
+##### --dup: duplication rate (default: 3.72e-6)
+##### -c: fraction of duplications that are local (default: 0.6)
+##### --segdup: fraction of local duplications that are segmental duplications (default: 0.25)
+##### --geneconv: rate at which non-allelic gene conversion occurs (default: 2.5e-7)
+##### --somatic-coefficient: for use in establishing relationship between expression and somatic mutation rate (default: 11.8898)
+##### --max-mutations: number of mutations allowed before a tRNA gene is no longer considered a tRNA gene (default: 7)
+##### --pseudo: begin with a tRNA pseudogene (0.0 sequence and 0.0 expression) in addition to the number of functional tRNA genes (default: false)
+
+##### --function: fitness function to be used (default: "redundant"; other options: "model", "gaussian", "exponential")
+##### --min-fitness: cumulative expression of tRNAs required for fitness 1.0 under "redundant" function (default: 4.0)
+##### --fitmean: cumulative expression of tRNAs rqeuired for fitness 1.0 under "gaussian" function (default: 10.52110756)
+##### --fitsd: standard deviation of gaussian fitness function (default: fitmean/4.0)
+##### --fitlambda: lambda value for exponential fitness function (default: -15.0)
+
+#### The following are based on the Nowak paper linked above:
 
 ##### --model-1:
 Two tRNAs initially, with exactly the same mutation rate and function. All mutations are completely inactivating. No somatic mutations, duplications or deletions are possible.
