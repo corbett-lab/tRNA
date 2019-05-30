@@ -21,9 +21,9 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
     // fitness = ( 1 / sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) ) ) * exp(-1 * ( (pow((x - fitness.mean), 2)) / (2 * pow(options.fitness_sd, 2)) )
     // ^ normalize this so that highest is 1.0 and all others are a fraction of that
 
+    double temp_con = sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) ) ;
 
-
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
 
 
     	double x_ind = 0.0 ;
@@ -56,7 +56,7 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
         	}
         }
 
-        fitness[i] = (1 / sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) )) * ( exp(-1 * ( (pow((x_ind - options.fitness_mean), 2)) / (2 * (pow(options.fitness_sd, 2))) ) ) ) / opt_fit ;
+        fitness[i] = (1 / temp_con ) * ( exp(-1 * ( (pow((x_ind - options.fitness_mean), 2)) / (2 * (pow(options.fitness_sd, 2))) ) ) ) / opt_fit ;
         if ( fitness[i] > 1.0 ) {
             cout << "FITNESS > 1.0:\t" << fitness[i] << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;
             exit(0);

@@ -26,7 +26,7 @@ void non_allelic( gene* new_trna, gene* locus_trna, gene* sequence_trna ) {
 void gene_conversion( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter ) {
 
 	// go through all individuals
-	for ( int i = 0 ; i < population.size() ; i ++ ) {
+	for ( int i = 0 ; i < population.size() ; ++i ) {
 
 		// sort that individual's tRNAs on each chromosome by locus
         std::sort(population[i].maternal_trnas.begin() , population[i].maternal_trnas.end(), sortByLocus);
@@ -44,7 +44,7 @@ void gene_conversion( vector<individual> &population, cmd_line &options, list<ge
         		// take the locus of one extant gene and the sequence characteristics of another.
         		// we will also erase the locus gene from that chromosome.
 
-        		gene* new_trna = new gene ; 
+        		gene* new_trna = ::new gene ; 
                 new_trna->birth = current_gen ;
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
@@ -87,7 +87,7 @@ void gene_conversion( vector<individual> &population, cmd_line &options, list<ge
         		// take the locus of one extant gene and the sequence characteristics of another.
         		// we will also erase the locus gene from that chromosome.
 
-        		gene* new_trna = new gene ; 
+        		gene* new_trna = ::new gene ; 
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
 

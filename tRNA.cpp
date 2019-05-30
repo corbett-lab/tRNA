@@ -86,12 +86,17 @@ int main ( int argc, char **argv ) {
 
     // load in different distributions of functions of tRNAs with given number of mutations:
     std::map<int, vector<double>> mutations_to_function ;
-    for ( int i = 1 ; i < 11 ; i ++ ){
+    for ( int i = 1 ; i < 11 ; ++i ){
         std::string myNum = std::to_string(i) ;
         std::ifstream is(options.path + "functionDists/functionDists"+myNum+".txt") ;
         std::istream_iterator<double> start(is), end ;
         std::vector<double> mutation_penalties(start, end) ;
         mutations_to_function[i] = mutation_penalties ;
+        // if ( i == 1 ){
+        //     for ( int m = 1 ; m < mutation_penalties.size() ; ++m ){
+        //         cout << i << "\t" << (mutations_to_function[i])[m] << endl ;
+        //     }
+        // }
     }
 
     if ( options.sample == true ){
@@ -102,6 +107,10 @@ int main ( int argc, char **argv ) {
 
     /// trna bank
     list<gene*> trna_bank ; 
+    cout << "TRNA_BANK MEMORY ADDRESS: " << &trna_bank << endl ;
+
+    /// reusable pointers
+    list<gene*> reusable_pointers ; 
 
     /// map of tRNA lifespans to count number of tRNAs that lived that long
     std::map<int, int> lifespan_to_count ;
@@ -111,7 +120,7 @@ int main ( int argc, char **argv ) {
 
     /// now copy to population of size n
     vector<individual> population ( options.n ) ;
-    for ( int i = 0 ; i < population.size() ; i ++ ) { 
+    for ( int i = 0 ; i < population.size() ; ++i ) { 
     	for ( auto t : trna_bank ) { 
     		population[i].maternal_trnas.push_back( t ) ;
     		population[i].paternal_trnas.push_back( t ) ;

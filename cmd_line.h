@@ -102,8 +102,8 @@ public:
 void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     
     /// set parameter defaults
-    n = 1000 ;
-    generations = 1000000 ;
+    n = 10000 ;
+    generations = 10000000 ;
 
     /// for now, setting these to follow distributions of min/max:
     //
@@ -141,11 +141,11 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     germline_rate = 1e-6 ;
     somatic_rate = 1.96e-5 ;
-    deletion_rate = 3.5e-6 ; 
-    duplication_rate = 3.5e-6 ; 
+    deletion_rate = 3.63e-6 ; 
+    duplication_rate = 3.72e-6 ; 
     prob_cluster = 0.6 ; 
     prob_segdup = 0.25 ;
-    gene_conversion_rate = 1e-7 ;
+    gene_conversion_rate = 2.5e-7 ;
 
     // sampling parameters
     sample = false ;
@@ -160,10 +160,10 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     somatic_coefficient = 11.8898 ;
 
     // maximum number of SNPs a tRNA is allowed to have before it is no longer a tRNA gene
-    max_mutations = 10 ;
+    max_mutations = 7 ;
 
     // fitness fitting parameters -- redundant
-    min_fitness = 6.0 ;
+    min_fitness = 4.0 ;
 
     // fitness fitting parameters -- gaussian
     fitness_mean = 10.52110756 ;

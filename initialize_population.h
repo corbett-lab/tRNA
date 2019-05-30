@@ -13,8 +13,8 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
     if ( options.model1 == true ){
 
         // BOTH GENES THE SAME:
-        for ( int t = 0 ; t < 2 ; t ++ ) { 
-            gene* new_trna = new gene ; 
+        for ( int t = 0 ; t < 2 ; ++t ) { 
+            gene* new_trna = ::new gene ; 
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
@@ -43,7 +43,7 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
     else if ( options.model2 == true ){
 
         // FIRST GENE:
-        gene* trna1 = new gene ; 
+        gene* trna1 = ::new gene ; 
         /// map position of the initial tRNA 
         // make it so that it isn't at either end of the chromosome!
         trna1->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
@@ -64,7 +64,7 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
         trna_bank.push_back( trna1 ) ; 
 
         // SECOND GENE:
-        gene* trna2 = new gene ; 
+        gene* trna2 = ::new gene ; 
         /// map position of the initial tRNA 
         // make it so that it isn't at either end of the chromosome!
         trna2->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
@@ -94,8 +94,8 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
     else if ( options.model4 == true ){
 
         // ALL GENES THE SAME:
-        for ( int t = 0 ; t < options.model4_count ; t ++ ) { 
-            gene* new_trna = new gene ; 
+        for ( int t = 0 ; t < options.model4_count ; ++t ) { 
+            gene* new_trna = ::new gene ; 
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!
             new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
@@ -123,9 +123,9 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
     //////////////////////////////////
 
     else {
-        for ( int t = 0 ; t < options.start_count ; t ++ ) { 
+        for ( int t = 0 ; t < options.start_count ; ++t ) { 
 
-            gene* new_trna = new gene ; 
+            gene* new_trna = ::new gene ; 
 
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!
@@ -158,9 +158,9 @@ void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna
     //////////////////////
 
     if ( options.pseudogene == true ){
-        for ( int t = 0 ; t < options.start_count ; t ++ ) { 
+        for ( int t = 0 ; t < options.start_count ; ++t ) { 
 
-            gene* new_trna = new gene ; 
+            gene* new_trna = ::new gene ; 
 
             /// map position of the initial tRNA 
             // make it so that it isn't at either end of the chromosome!

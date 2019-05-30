@@ -25,7 +25,7 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
     double temp_fitness [options.n] ;
     double max_fitness = 0.0 ;
 
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
 
 
     	double x_ind = 0.0 ;
@@ -65,7 +65,7 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
         }
     }
 
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
         fitness[i] = 1.0 - exp(options.fitness_lambda * (temp_fitness[i] / max_fitness)) ;
         if ( fitness[i] > 1.0 ) {
             cout << "FITNESS > 1.0:\t" << fitness[i] << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;

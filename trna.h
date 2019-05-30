@@ -14,20 +14,20 @@ public:
     int name ;
     
     /// sequence
-    float sequence ;
+    double sequence ;
 
 	// expression
-	float expression ;
+	double expression ;
 
     // frequency over time ;
     // vector<int> frequency ;
 
     // generation when gene was first seen
-    float birth ;  
+    int birth ;  
 
     /// u rates per locus
-    float somatic ;
-    float germline ;
+    double somatic ;
+    double germline ;
 
     // progenitor 
     int progenitor ;

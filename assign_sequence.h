@@ -13,7 +13,7 @@ void assign_sequence( gene* old_trna, gene* new_trna, std::map<int, vector<doubl
 
 	// in the models, all mutations are assumed to be completely inactivating!
 	if ( ( options.model1 == true ) or ( options.model2 == true ) or ( options.model4 == true ) ) {
-		new_trna->sequence = 0 ;
+		new_trna->sequence = 0.0 ;
 		new_trna->muts = old_trna->muts + 1 ;
 	}
 
@@ -22,8 +22,11 @@ void assign_sequence( gene* old_trna, gene* new_trna, std::map<int, vector<doubl
 		new_trna->muts = old_trna->muts + 1 ;
 		if ( new_trna->muts < options.max_mutations ) {
 			int random_index = rand() % (mutations_to_function[new_trna->muts]).size() ;
-			if ( ((mutations_to_function[new_trna->muts])[random_index]) <= new_trna->sequence ){
+			if ( ((mutations_to_function[new_trna->muts])[random_index]) <= old_trna->sequence ){
 				new_trna->sequence = ((mutations_to_function[new_trna->muts])[random_index]) ;
+			}
+			else {
+				new_trna->sequence = old_trna->sequence ;
 			}
 		    if ( new_trna->sequence > 1.0 ) {
 		    	new_trna->sequence = 1.0 ;
@@ -35,6 +38,7 @@ void assign_sequence( gene* old_trna, gene* new_trna, std::map<int, vector<doubl
 		else {
 			new_trna->sequence = 0.0 ;
 		}
+		
 		
 	}
 }

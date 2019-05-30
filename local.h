@@ -1,7 +1,7 @@
 #ifndef __LOCAL_H
 #define __LOCAL_H
 
-void local( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, cmd_line &options ) {
+void local( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci, cmd_line &options ) {
 
 	// for tRNAs that are close by, share some similarities to the progenitor
 	// called in mutate.h for local tRNA duplications
@@ -16,6 +16,7 @@ void local( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, cmd
     else{
         new_trna->locus = old_trna->locus + 0.5 + gsl_rng_uniform( rng ) ;
         while ( temp_loci.count( new_trna->locus ) ) {
+        	cout << new_trna->locus ;
             new_trna->locus	= old_trna->locus + 0.5 + gsl_rng_uniform( rng ) ;
         }
     }

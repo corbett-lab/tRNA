@@ -1,7 +1,7 @@
 #ifndef __SEGDUP_H
 #define __SEGDUP_H
 
-void segdup( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, cmd_line &options ) {
+void segdup( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci, cmd_line &options ) {
 
 	// for tRNAs that jump to a new portion of the genome, give new tRNA attributes
 	// called in mutate.h in non-tandem tRNA duplications
@@ -10,12 +10,14 @@ void segdup( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, cm
 	if ( ( gsl_ran_bernoulli( rng, 0.5 )) or ( old_trna->locus + 2 > options.map_length ) ) {
         new_trna->locus = old_trna->locus - 0.25 - gsl_rng_uniform( rng ) ;
         while ( temp_loci.count( new_trna->locus ) ) {
+            cout << new_trna->locus ;
             new_trna->locus	= old_trna->locus - 0.25 - gsl_rng_uniform( rng ) ;
         }
     }
     else {
         new_trna->locus = old_trna->locus + 0.25 + gsl_rng_uniform( rng ) ;
         while ( temp_loci.count( new_trna->locus ) ) {
+            cout << new_trna->locus ;
             new_trna->locus = old_trna->locus + 0.25 + gsl_rng_uniform( rng ) ;
         }
     }

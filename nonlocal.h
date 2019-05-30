@@ -1,7 +1,7 @@
 #ifndef __NONLOCAL_H
 #define __NONLOCAL_H
 
-void nonlocal( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, cmd_line &options ) {
+void nonlocal( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci, cmd_line &options ) {
 
 	// for tRNAs that jump to a new portion of the genome, give new tRNA attributes
 	// called in mutate.h in non-tandem tRNA duplications
@@ -9,8 +9,9 @@ void nonlocal( gene* old_trna, gene* new_trna, std::map<float, int> &temp_loci, 
 	// new location is just random place in the genome
     new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
     while ( temp_loci.count( new_trna->locus ) ){
-            new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
-        }
+    	cout << new_trna->locus ;
+        new_trna->locus = ( options.map_length * 0.2 ) + ( gsl_rng_uniform( rng ) * ( options.map_length * 0.6 ) ) ;
+    }
 
     /// note: we are now using beta parameters for expression distribution of tRNAs in STEM CELLS ONLY:
 

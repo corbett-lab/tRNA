@@ -37,6 +37,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
             lifespan_to_count[ g - (*t)->birth ] += 1 ;
             // (*t)->frequency.push_back( 0 ) ;
 			delete *t ;
+            // reusable_pointers.push_back( *t ) ;
 			t = trna_bank.erase(t) ; 			
 		}
 		else {
@@ -55,9 +56,9 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
         if ( options.quiet == false ){
             for ( auto t : found ) { 
                 if ( t.second > 0 ) {
-                    cout.precision(8) ;
-                    cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" << (*t.first).expression ;
-                    cout << "_" << (*t.first).muts << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << (*t.first).birth_mode << "_" << t.second  ;    
+                    cout.precision(10) ;
+                    cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" << (*t.first).expression << "_" << (*t.first).muts ;
+                    cout << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << (*t.first).birth_mode << "_" << t.second  ;    
                     if (t.second > options.n*2) {
                         cout << "\t" << "A tRNA HAS BEEN FOUND ON MORE CHROMOSOMES THAN THERE ARE CHROMOSOMES. EXITING PROGRAM." << endl ;
                         // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.

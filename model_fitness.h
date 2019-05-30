@@ -15,11 +15,11 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
     // in the models recall that all mutations set sequence to zero
 
     if ( options.model4 == true ) {
-        for ( int i = 0 ; i < population.size() ; i ++ ) {
+        for ( int i = 0 ; i < population.size() ; ++i ) {
 
             // get total function of all of an individual's tRNAs
-            double mom_function = 0 ;
-            double dad_function = 0 ;
+            double mom_function = 0.0 ;
+            double dad_function = 0.0 ;
 
             // maternal fitness block
             for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
@@ -59,7 +59,7 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
 
     else if (( options.model1 == true ) or ( options.model2 == true )) {
 
-        for ( int i = 0 ; i < population.size() ; i ++ ) {
+        for ( int i = 0 ; i < population.size() ; ++i ) {
             double max_function = 0 ;
 
             // maternal fitness block
@@ -103,22 +103,28 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
     // multiply depth of expression by sequence and add that to your fitness?
 
     else {
-        for ( int i = 0 ; i < population.size() ; i ++ ) {
+        for ( int i = 0 ; i < population.size() ; ++i ) {
             double max_function = 0.0 ;
 
             // maternal fitness block
             for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
-                    if ( (*population[i].maternal_trnas[g]).muts < 10 ) {
+                    if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
                         int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                        if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function ){
-                            max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
+                        // if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function ){
+                        //     max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
+                        // }
+                        if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                            max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
                         }
                     } 
                 }
                 else {
-                    if (((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function){
-                        max_function = ((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
+                    // if (((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function){
+                    //     max_function = ((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
+                    // }
+                    if (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
+                        max_function = ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                     }
                 }
             }
@@ -126,16 +132,22 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
             // paternal fitness block
             for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
-                    if ( (*population[i].paternal_trnas[g]).muts < 10 ) {
+                    if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
                         int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                        if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function ){
-                            max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
+                        // if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function ){
+                        //     max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
+                        // }
+                        if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                            max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
                         }
                     }
                 }
                 else {
-                    if (((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function){
-                        max_function = ((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
+                    // if (((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function){
+                    //     max_function = ((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
+                    // }
+                    if (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
+                        max_function = ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
                     }
                 }
             }

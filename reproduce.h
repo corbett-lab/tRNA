@@ -84,7 +84,7 @@ void reproduce( const double *fitness, vector<individual> &population, vector<in
     gsl_ran_discrete_t *g = gsl_ran_discrete_preproc( population.size(), fitness ) ;
 
     /// iterate through all individuals and draw parents + recomb
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
     
         /// new individual
         individual new_ind ;

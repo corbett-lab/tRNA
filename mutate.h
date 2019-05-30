@@ -35,14 +35,16 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     // 
 
     // germline mutations
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+
+    for ( int i = 0 ; i < population.size() ; ++i ) {
+    //tbb::parallel_for ( size_t(0) , size_t(population.size()), [&] (size_t i) ) {
 
         // maternal germline block
         for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).germline ) ) {
                 //// new gene has the same attributes as progenitor except sequence
                 //// assign_sequence resolves this with penalties
-            	gene* new_trna = new gene ; 
+            	gene* new_trna = ::new gene ; 
             	new_trna->locus = (*population[i].maternal_trnas[g]).locus ; 
             	new_trna->somatic = (*population[i].maternal_trnas[g]).somatic ; 
             	new_trna->germline = (*population[i].maternal_trnas[g]).germline ;
@@ -64,7 +66,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
             if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).germline ) ) {
                 //// new gene has the same attributes as progenitor except sequence
                 //// assign_sequence resolves this with penalties
-            	gene* new_trna = new gene ; 
+            	gene* new_trna = ::new gene ; 
             	new_trna->locus = (*population[i].paternal_trnas[g]).locus ; 
             	new_trna->somatic = (*population[i].paternal_trnas[g]).somatic ; 
             	new_trna->germline = (*population[i].paternal_trnas[g]).germline ;
@@ -83,18 +85,18 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     }
 
     // duplications
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
 
         // maternal duplication block
         for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, options.duplication_rate ) ) {
-                gene* new_trna = new gene ; 
+                gene* new_trna = ::new gene ; 
                 // locus, expression, somatic, germline and sequence are all set in local.h and nonlocal.h
                 new_trna->birth = current_gen ;
                 new_trna->progenitor = (*population[i].maternal_trnas[g]).name ;
 
                 /// ensure that loci don't double up
-                std::map<float, int> temp_loci ;
+                std::map<double, int> temp_loci ;
                 for ( int m = 0 ; m < population[i].maternal_trnas.size() ; m ++ ){
                     if ( !temp_loci.count( (population[i].maternal_trnas[m])->locus ) ) {
                         temp_loci.insert( std::pair<float,int> ( (population[i].maternal_trnas[m])->locus, 0 ) ) ;
@@ -103,7 +105,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                         cout << "\t" << "ONE LOCUS HAS MULTIPLE TRNAS IN A SINGLE INDIVIDUAL. EXITING PROGRAM." << endl ;
                         cout << "GENERATION: " << current_gen << endl ;
                         for ( int z = 0 ; z < population[i].maternal_trnas.size() ; z ++ ){
-                            cout.precision(8) ;
+                            cout.precision(10) ;
                             cout << "\t" << (population[i].maternal_trnas[z])->name << "_" << (population[i].maternal_trnas[z])->locus << "_" << (population[i].maternal_trnas[z])->sequence ;
                             cout << "_" << (population[i].maternal_trnas[z])->expression << "_" << (population[i].maternal_trnas[z])->muts << "_" << (population[i].maternal_trnas[z])->birth ;
                             cout << "_" << (population[i].maternal_trnas[z])->progenitor << "_" << (population[i].maternal_trnas[z])->birth_mode ;
@@ -130,6 +132,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                         segdup( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ;
                     }
                 }
+                temp_loci.clear() ;
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
             	trna_bank.push_back( new_trna ) ; 
@@ -140,13 +143,13 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
         // paternal duplication block
         for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
             if ( gsl_ran_bernoulli( rng, options.duplication_rate ) ) {
-                gene* new_trna = new gene ; 
+                gene* new_trna = ::new gene ; 
                 // locus, expression, somatic, germline and sequence are all set in local.h and nonlocal.h
                 new_trna->birth = current_gen ;
                 new_trna->progenitor = (*population[i].paternal_trnas[g]).name ;
 
                 /// ensure that loci don't double up
-                std::map<float, int> temp_loci ;
+                std::map<double, int> temp_loci ;
                 for ( int p = 0 ; p < population[i].paternal_trnas.size() ; p ++ ){
                     if ( !temp_loci.count( (population[i].paternal_trnas[p])->locus ) ) {
                         temp_loci.insert( std::pair<float,int> ( (population[i].paternal_trnas[p])->locus, 0 ) ) ;
@@ -155,7 +158,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                         cout << "\t" << "ONE LOCUS HAS MULTIPLE TRNAS IN A SINGLE INDIVIDUAL. EXITING PROGRAM." << endl ;
                         cout << "GENERATION: " << current_gen << endl ;
                         for ( int z = 0 ; z < population[i].paternal_trnas.size() ; z ++ ){
-                            cout.precision(8) ;
+                            cout.precision(10) ;
                             cout << "\t" << (population[i].paternal_trnas[z])->name << "_" << (population[i].paternal_trnas[z])->locus << "_" << (population[i].paternal_trnas[z])->sequence ;
                             cout << "_" << (population[i].paternal_trnas[z])->expression << "_" << (population[i].paternal_trnas[z])->muts << "_" << (population[i].paternal_trnas[z])->birth ;
                             cout << "_" << (population[i].paternal_trnas[z])->progenitor << "_" << (population[i].paternal_trnas[z])->birth_mode ;
@@ -179,6 +182,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                         segdup( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ;
                     }
                 }
+                temp_loci.clear() ;
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
                 trna_bank.push_back( new_trna ) ; 
@@ -189,10 +193,10 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     }
 
     // delete tRNAs
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
         // maternal deletion block
         for ( int g = population[i].maternal_trnas.size() -1 ; g > -1 ; g -- ) {
-            if ( population[i].maternal_trnas[g]-> muts >= 10 ) {
+            if ( population[i].maternal_trnas[g]->sequence == 0.0 ) {
                 population[i].maternal_trnas.erase( population[i].maternal_trnas.begin() + g ) ;
             }
             else if ( gsl_ran_bernoulli( rng, options.deletion_rate ) ) {
@@ -201,7 +205,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
         }
         // paternal deletion block
         for ( int g = population[i].paternal_trnas.size() -1 ; g > -1 ; g -- ) {
-            if ( population[i].paternal_trnas[g]-> muts >= 10 ) {
+            if ( population[i].paternal_trnas[g]->sequence == 0.0 ) {
                 population[i].paternal_trnas.erase( population[i].paternal_trnas.begin() + g ) ;
             }
             else if ( gsl_ran_bernoulli( rng, options.deletion_rate ) ) {
@@ -211,7 +215,7 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     }
 
     // sort tRNAs by locus for ease in recombination
-    for ( int i = 0 ; i < population.size() ; i ++ ) {
+    for ( int i = 0 ; i < population.size() ; ++i ) {
         std::sort(population[i].maternal_trnas.begin() , population[i].maternal_trnas.end(), sortByLocus);
         std::sort(population[i].paternal_trnas.begin() , population[i].paternal_trnas.end(), sortByLocus);
     }
