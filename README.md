@@ -15,7 +15,7 @@ To run, simply type ./tRNA
 **--start**: number of tRNA genes in the genome initially (default: 1)  
 **-m**: length of genome in morgans (default: 30.0)  
 
-**--print**: generation printing interval (--print 500 will print every 500 generations, etc.)
+**--print**: generation printing interval (--print 500 will print every 500 generations, etc.)  
 **-b**: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)  
 **--path**: the path to the directory where the functionDists directory is located (necessary for reading in mutation effects)  
 **-s**: seed, to ensure non-unique results on many simulations begun at the same time  
