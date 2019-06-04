@@ -5,25 +5,8 @@
 // sort container by locus
 bool sortByLocus(gene* a, gene* b) { return (a->locus < b->locus); }
 
-void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter, std::map<int, vector<double>> &mutations_to_function ) {
+void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter, std::map<int,vector<double>> &mutations_to_function, std::map<string,double> &genotype_to_fitness, std::map<string,vector<string>> &genotype_to_genotypes, std::map<string,vector<double>> &genotype_to_fitnesses ) {
     
-    // add germline mutations
-    //
-    /////////////////////////// BRYAN NOTES:
-    // - added assign_sequence.h, which assigns new sequence to tRNAs with mutations
-    // - added nonlocal.h and local.h to give new attributes to tRNAs from jumping duplications
-    /////////////// TODO: add in distribution of mutations: done
-    // - changed sort sequence to hopefully resolve bug in recombination: done
-    // - mutations that make things NOT a tRNA despite bit score change? advantageous mutations?
-    //
-    //////////////// TODO:
-    //
-    // gene conversion
-    // if you have at least two genes on that chromosome, at some rate this will happen
-    // - even chance of one gene being replacer and one being replaced? 50/50?
-    // - uniform chance across all genes that this happens? universal option or gene attribute?
-    // - should we add this before or after duplication/deletion?
-    //
     ///////////// MISC EARLY THOUGHTS I DON'T WANT TO COMPLETELY DELETE:
     // - fitness must have something against total duplicate genes, otherwise will just keep growing
     // - new class of pseudogenes? tRNAs that are there but do not add to fitness. important for comparing to real data!
@@ -34,8 +17,8 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
     // - how to model without biasing some ideal number of tRNAs to have
     // 
 
-    // germline mutations
 
+    // germline mutations
     for ( int i = 0 ; i < population.size() ; ++i ) {
     //tbb::parallel_for ( size_t(0) , size_t(population.size()), [&] (size_t i) ) {
 
@@ -53,7 +36,12 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                 new_trna->birth = (*population[i].maternal_trnas[g]).birth ;
                 new_trna->progenitor = (*population[i].maternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
-                assign_sequence( population[i].maternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                if ( options.mutation_pathways == false ){
+                    assign_sequence( population[i].maternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                }
+                else {
+                    assign_genotype( population[i].maternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
+                }
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
                 trna_bank.push_back( new_trna ) ; 
@@ -75,7 +63,12 @@ void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trn
                 new_trna->birth = (*population[i].paternal_trnas[g]).birth ;
                 new_trna->progenitor = (*population[i].paternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
-                assign_sequence( population[i].paternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                if ( options.mutation_pathways == false ){
+                    assign_sequence( population[i].paternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                }
+                else {
+                    assign_genotype( population[i].paternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
+                }
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
                 trna_bank.push_back( new_trna ) ;

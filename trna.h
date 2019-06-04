@@ -16,6 +16,9 @@ public:
     /// sequence
     double sequence ;
 
+    /// genotype (meaningless unless --mutation-pathways is used)
+    string genotype ;
+
 	// expression
 	double expression ;
 

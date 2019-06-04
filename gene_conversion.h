@@ -16,6 +16,7 @@ void non_allelic( gene* new_trna, gene* locus_trna, gene* sequence_trna ) {
 	// give new gene sequence characteristics of sequence_trna
 	new_trna->muts = sequence_trna->muts ;
 	new_trna->sequence = sequence_trna->sequence ;
+    new_trna->genotype = sequence_trna->genotype ;
 	new_trna->progenitor = sequence_trna->name ;
     new_trna->birth_mode = 'c' ;
 

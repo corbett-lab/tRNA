@@ -24,6 +24,7 @@ To run, simply type ./tRNA
 **--sample-freq**: sample every ____ generations (default: 10,000)  
 **--sample-count**: sample ____ individuals each time (default: 10)  
 **--quiet**: use if you are not interested in printing every tRNA's stats every time (default: false)  
+**--mutation-pathways**: assigns specific genotypes to each tRNA
 **--output-lifespans**: outputs lifespan log file, which contains lifespan data for all tRNAs created during the simulation (default: false)  
 
 **--ug**: baseline germline mutation rate (default: 1e-6)  

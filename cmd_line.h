@@ -53,6 +53,9 @@ public:
     // output sample data
     bool sample ;
 
+    // sample whole population
+    bool sample_all ;
+
     // sample how many generations
     int sampling_frequency ;
 
@@ -86,6 +89,9 @@ public:
 
     // path to fitness values for each number of mutations files
     string path ;
+
+    // mutation pathways bool
+    bool mutation_pathways ;
 
     // flags to replicate models from paper
     bool model1 ;
@@ -149,8 +155,12 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     // sampling parameters
     sample = false ;
+    sample_all = false ;
     sampling_frequency = 10000 ;
     sampling_count = 10 ;
+
+    // mutation pathways flag
+    mutation_pathways = false ;
 
     // quiet flag
     quiet = false ;
@@ -242,6 +252,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--sample") == 0 ) {
             sample = true ;
         }
+        if ( strcmp(argv[i],"--sample-all") == 0 ) {
+            sample_all = true ;
+        }
         if ( strcmp(argv[i],"--sample-freq") == 0 ) {
             sampling_frequency = atof(argv[++i]) ;
         }
@@ -289,6 +302,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if ( strcmp(argv[i],"--output-lifespans") == 0 ) {
             output_lifespans = true ;
+        }
+        if ( strcmp(argv[i],"--mutation-pathways") == 0 ) {
+            mutation_pathways = true ;
         }
 
         /// replicating models requires changes to other parameters

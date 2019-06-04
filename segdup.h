@@ -7,18 +7,18 @@ void segdup( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci, c
 	// called in mutate.h in non-tandem tRNA duplications
 
 	// segmental duplications are very close in location to their progenitors
-	if ( ( gsl_ran_bernoulli( rng, 0.5 )) or ( old_trna->locus + 2 > options.map_length ) ) {
-        new_trna->locus = old_trna->locus - 0.25 - gsl_rng_uniform( rng ) ;
+	if ( ( gsl_ran_bernoulli( rng, 0.5 )) or ( old_trna->locus + (options.map_length / 100.0) > options.map_length ) ) {
+        new_trna->locus = old_trna->locus - (options.map_length / 100000.0) - ( gsl_rng_uniform( rng ) * (options.map_length / 100000.0) ) ;
         while ( temp_loci.count( new_trna->locus ) ) {
             cout << new_trna->locus ;
-            new_trna->locus	= old_trna->locus - 0.25 - gsl_rng_uniform( rng ) ;
+            new_trna->locus	= old_trna->locus - (options.map_length / 100000.0) - ( gsl_rng_uniform( rng ) * (options.map_length / 100000.0) ) ;
         }
     }
     else {
-        new_trna->locus = old_trna->locus + 0.25 + gsl_rng_uniform( rng ) ;
+        new_trna->locus = old_trna->locus + (options.map_length / 100000.0) + ( gsl_rng_uniform( rng ) * (options.map_length / 100000.0) ) ;
         while ( temp_loci.count( new_trna->locus ) ) {
             cout << new_trna->locus ;
-            new_trna->locus = old_trna->locus + 0.25 + gsl_rng_uniform( rng ) ;
+            new_trna->locus = old_trna->locus + (options.map_length / 100000.0) + ( gsl_rng_uniform( rng ) * (options.map_length / 100000.0) ) ;
         }
     }
 
@@ -26,6 +26,7 @@ void segdup( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci, c
 	new_trna->somatic = old_trna->somatic ;
 	new_trna->germline = old_trna->germline ;
 	new_trna->sequence = old_trna->sequence ;
+    new_trna->genotype = old_trna->genotype ;
 	new_trna->muts = old_trna->muts ;
 
 	// duplication rate is set to 0 for nowak models so no need to account for them here

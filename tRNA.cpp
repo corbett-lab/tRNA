@@ -37,6 +37,7 @@ const gsl_rng *rng ;
 #include "individual.h"
 #include "initialize_population.h"
 #include "assign_sequence.h"
+#include "assign_genotype.h"
 #include "nonlocal.h"
 #include "local.h"
 #include "segdup.h"
@@ -49,7 +50,7 @@ const gsl_rng *rng ;
 #include "reproduce.h" 
 #include "stats.h"
 #include "sample.h"
-
+#include "sample_all.h"
 
 /// main 
 int main ( int argc, char **argv ) {
@@ -84,20 +85,99 @@ int main ( int argc, char **argv ) {
     // std::istream_iterator<double> start(is), end ;
     // std::vector<double> mutation_penalties(start, end) ;
 
-    // load in different distributions of functions of tRNAs with given number of mutations:
+
+
+    // for random fitness drawing:
     std::map<int, vector<double>> mutations_to_function ;
-    for ( int i = 1 ; i < 11 ; ++i ){
-        std::string myNum = std::to_string(i) ;
-        std::ifstream is(options.path + "functionDists/functionDists"+myNum+".txt") ;
-        std::istream_iterator<double> start(is), end ;
-        std::vector<double> mutation_penalties(start, end) ;
-        mutations_to_function[i] = mutation_penalties ;
-        // if ( i == 1 ){
-        //     for ( int m = 1 ; m < mutation_penalties.size() ; ++m ){
-        //         cout << i << "\t" << (mutations_to_function[i])[m] << endl ;
-        //     }
-        // }
+    // for pathway-specific fitness drawing:
+    std::map<string, double> genotype_to_fitness ;
+    std::map<string, vector<string>> genotype_to_genotypes ;
+    std::map<string, vector<double>> genotype_to_fitnesses ;
+
+    // load in different distributions of functions of tRNAs with given number of mutations:
+    if ( options.mutation_pathways == false ){
+        for ( int i = 1 ; i < 11 ; ++i ){
+            std::string myNum = std::to_string(i) ;
+            std::ifstream is(options.path + "functionDists/functionDists"+myNum+".txt") ;
+            std::istream_iterator<double> start(is), end ;
+            std::vector<double> mutation_penalties(start, end) ;
+            mutations_to_function[i] = mutation_penalties ;
+            // if ( i == 1 ){
+            //     for ( int m = 1 ; m < mutation_penalties.size() ; ++m ){
+            //         cout << i << "\t" << (mutations_to_function[i])[m] << endl ;
+            //     }
+            // }
+        }
     }
+
+    // load in mutation pathways from yeast data:
+    else {
+        ifstream input(options.path + "functionDists/yeastGenotypePathways.txt") ;
+        char const row_delim = '\n' ;
+        char const field_delim = '\t' ;
+        char const entry_delim = ',' ;
+        for (string row; getline(input, row, row_delim); ) {
+            istringstream iss(row) ;
+            vector<string> tokens{istream_iterator<string>{iss}, istream_iterator<string>{}} ;
+
+            // get genotype
+            string genotype ;
+            std::istringstream line_stream(row) ;
+            line_stream >> genotype ;
+
+            // if mutation chain ends here, add fitness of genotype + 0 as only option after
+            if ( tokens.size() == 2 ) {
+                double fitness ;
+                while (line_stream >> fitness) {
+                     genotype_to_fitness[genotype] = fitness ;
+                     vector<string> genotypes ;
+                     genotypes.push_back( "x" );
+                     vector<double> fitnesses ;
+                     fitnesses.push_back( 0.0 ) ;
+                     genotype_to_genotypes[genotype] = genotypes ;
+                     genotype_to_fitnesses[genotype] = fitnesses ;
+                 }
+            }
+
+            // if mutation chain keeps going, add index 1 as fitness
+            // then create vectors of posssible options for future genotypes and fitnesses
+            else if ( tokens.size() > 2 ){
+                string temp_fitness = tokens.at( 1 ) ;
+                double fitness = std::stod( temp_fitness ) ;
+                genotype_to_fitness[genotype] = fitness ;
+
+                vector<string> genotypes ;
+                vector<double> fitnesses ;
+                string temp_genotypes = tokens.at( 2 ) ;
+                string temp_fitnesses = tokens.at( 3 ) ;
+                int g_count = std::count(temp_genotypes.begin(), temp_genotypes.end(), ',') ;
+                int f_count = std::count(temp_fitnesses.begin(), temp_fitnesses.end(), ',') ;
+                // if only one option, create empty vector and add them in
+                if ( g_count == 0 ){
+                    genotypes.push_back( temp_genotypes ) ;
+                    double temp_f = std::stod( temp_fitnesses ) ;
+                    fitnesses.push_back( temp_f ) ;
+                    genotype_to_genotypes[genotype] = genotypes ;
+                    genotype_to_fitnesses[genotype] = fitnesses ;
+                }
+                // if multiple options, split strings by comma and add all elements to vectors
+                else {
+                    istringstream gss(temp_genotypes) ;
+                    for (string temp_g; getline(gss, temp_g, entry_delim); ) {
+                        genotypes.push_back( temp_g ) ;
+                    }
+                    istringstream fss(temp_fitnesses) ;
+                    for (string temp_f; getline(fss, temp_f, entry_delim); ) {
+                        double temp_f_each = std::stod( temp_f ) ;
+                        fitnesses.push_back( temp_f_each ) ;
+                    }
+                    genotype_to_genotypes[genotype] = genotypes ;
+                    genotype_to_fitnesses[genotype] = fitnesses ;
+                }
+            }
+        }
+    }
+
 
     if ( options.sample == true ){
         std::string sampling_out = std::to_string(options.run_num) + "_sample.txt" ;
@@ -113,6 +193,7 @@ int main ( int argc, char **argv ) {
     list<gene*> reusable_pointers ; 
 
     /// map of tRNA lifespans to count number of tRNAs that lived that long
+    std::map<double, int> loci_to_lifespans ;
     std::map<int, int> lifespan_to_count ;
     
     // create population of size n with two tRNAs of equivalent function
@@ -157,22 +238,22 @@ int main ( int argc, char **argv ) {
         
         /// vector to swap with
         vector<individual> new_population ( options.n ) ;
-                
+
         /// somatic and germline mutations
-        mutate( population, options, trna_bank, g, trna_counter, mutations_to_function ) ;
+        mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
 
         /// compute fitness
         if ( ( options.fitness_func == "exp" ) or ( options.fitness_func == "exponential" ) ) {
-            compute_exp_fitness( fitness, population, mutations_to_function, options ) ;
+            compute_exp_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
         }
         else if ( options.fitness_func == "model" ) {
-            compute_model_fitness( fitness, population, mutations_to_function, options ) ;
+            compute_model_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
         }
         else if ( options.fitness_func == "redundant" ) {
-            compute_redund_fitness( fitness, population, mutations_to_function, options ) ;
+            compute_redund_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
         }
         else {
-            compute_gaussian_fitness( fitness, population, mutations_to_function, opt_fit, options ) ;
+            compute_gaussian_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
         }
 
         /// non-allelic gene conversion
@@ -185,9 +266,13 @@ int main ( int argc, char **argv ) {
         swap( population, new_population ) ;
 
 		/////// print stats
-        print_stats( fitness, population, g, trna_bank, lifespan_to_count, options ) ;
+        print_stats( fitness, population, g, trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
 
-        if (( options.sample == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
+        if (( options.sample_all == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
+            sample_all( g, population, options ) ;
+        }
+
+        else if (( options.sample == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
             sample_individuals( g, population, options ) ;
         }
 

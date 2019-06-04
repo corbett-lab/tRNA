@@ -2,7 +2,7 @@
 #define __MODEL_FITNESS_H
 
 /// compute fitness
-void compute_model_fitness( double fitness[], vector<individual> &population, std::map<int, vector<double>> &mutations_to_function, cmd_line &options ) {
+void compute_model_fitness( double fitness[], vector<individual> &population, std::map<int, vector<double>> &mutations_to_function, std::map<string,double> &genotype_to_fitness, std::map<string,vector<string>> &genotype_to_genotypes, std::map<string,vector<double>> &genotype_to_fitnesses, cmd_line &options ) {
 
     /////////////////////
     ////// MODEL 4 //////
@@ -110,19 +110,21 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
             for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
-                        int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                        // if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function ){
-                        //     max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
-                        // }
-                        if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
-                            max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                        if ( options.mutation_pathways == false ){
+                            int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
+                            if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                                max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                            }
+                        }
+                        else{
+                            int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
+                            if (((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                                max_function = ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                            }
                         }
                     } 
                 }
                 else {
-                    // if (((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) > max_function){
-                    //     max_function = ((*population[i].maternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].maternal_trnas[g]).expression)) ;
-                    // }
                     if (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
                         max_function = ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                     }
@@ -133,19 +135,21 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
             for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
-                        int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                        // if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function ){
-                        //     max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
-                        // }
-                        if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                            max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                        if ( options.mutation_pathways == false ){
+                            int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
+                            if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                                max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                            }
+                        }
+                        else{
+                            int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
+                            if (((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                                max_function = ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                            }
                         }
                     }
                 }
                 else {
-                    // if (((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) > max_function){
-                    //     max_function = ((*population[i].paternal_trnas[g]).sequence) * (1.0 - exp(-10.72 * (*population[i].paternal_trnas[g]).expression)) ;
-                    // }
                     if (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
                         max_function = ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
                     }

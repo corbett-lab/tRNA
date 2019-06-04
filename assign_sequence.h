@@ -26,7 +26,7 @@ void assign_sequence( gene* old_trna, gene* new_trna, std::map<int, vector<doubl
 				new_trna->sequence = ((mutations_to_function[new_trna->muts])[random_index]) ;
 			}
 			else {
-				new_trna->sequence = old_trna->sequence ;
+				new_trna->sequence = ( old_trna->sequence - ( gsl_rng_uniform( rng ) / 100.0) );
 			}
 		    if ( new_trna->sequence > 1.0 ) {
 		    	new_trna->sequence = 1.0 ;

@@ -1,5 +1,5 @@
-#ifndef __SAMPLING_H
-#define __SAMPLING_H
+#ifndef __SAMPLE_H
+#define __SAMPLE_H
 
 void sample_individuals( int g, const vector<individual> &population, cmd_line &options ) {
 	std::string sampling_out = std::to_string(options.run_num) + "_sample.txt" ;
@@ -11,14 +11,16 @@ void sample_individuals( int g, const vector<individual> &population, cmd_line &
 			stream.precision(8) ;
 			stream << "\t" << (*population[random_index].maternal_trnas[m]).name << "_" << (*population[random_index].maternal_trnas[m]).locus << "_" ;
 			stream << (*population[random_index].maternal_trnas[m]).sequence << "_" << (*population[random_index].maternal_trnas[m]).expression ;
-            stream << "_" << (*population[random_index].maternal_trnas[m]).muts << "_" << (*population[random_index].maternal_trnas[m]).birth << "_" ;
+            stream << "_" << (*population[random_index].maternal_trnas[m]).muts << "_" << (*population[random_index].maternal_trnas[m]).genotype << "_" ;
+            stream << (*population[random_index].maternal_trnas[m]).birth << "_" ;
             stream << (*population[random_index].maternal_trnas[m]).progenitor << "_" << (*population[random_index].maternal_trnas[m]).birth_mode  ;
 		}
 		for ( int p = 0 ; p < population[random_index].paternal_trnas.size() ; ++p ) {
 			stream.precision(8) ;
 			stream << "\t" << (*population[random_index].paternal_trnas[p]).name << "_" << (*population[random_index].paternal_trnas[p]).locus << "_" ;
-			stream << (*population[random_index].paternal_trnas[p]).sequence << "_" << (*population[random_index].paternal_trnas[p]).expression ;
-            stream << "_" << (*population[random_index].paternal_trnas[p]).muts << "_" << (*population[random_index].paternal_trnas[p]).birth << "_" ;
+			stream << (*population[random_index].paternal_trnas[p]).sequence << "_" << (*population[random_index].paternal_trnas[p]).expression << "_" ;
+            stream << (*population[random_index].paternal_trnas[p]).muts << "_" << (*population[random_index].paternal_trnas[p]).genotype << "_" ;
+            stream << (*population[random_index].paternal_trnas[p]).birth << "_" ;
             stream << (*population[random_index].paternal_trnas[p]).progenitor << "_" << (*population[random_index].paternal_trnas[p]).birth_mode  ;
 		}
 		stream << "\n" ;
