@@ -24,7 +24,7 @@ void non_allelic( gene* new_trna, gene* locus_trna, gene* sequence_trna ) {
 
 // parse through all individuals and do gene conversion
 
-void gene_conversion( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter ) {
+void gene_conversion( vector<individual> &population, cmd_line &options, vector<gene*> &trna_bank, int current_gen, int &trna_counter ) {
 
 	// go through all individuals
 	for ( int i = 0 ; i < population.size() ; ++i ) {

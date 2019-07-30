@@ -36,21 +36,23 @@ const gsl_rng *rng ;
 #include "trna.h"
 #include "individual.h"
 #include "initialize_population.h"
+#include "reduce_ne.h"
 #include "assign_sequence.h"
 #include "assign_genotype.h"
 #include "nonlocal.h"
 #include "local.h"
 #include "segdup.h"
 #include "mutate.h"
-#include "gaussian_fitness.h"
-#include "exp_fitness.h"
-#include "model_fitness.h"
-#include "redund_fitness.h"
+#include "fitness.h"
 #include "gene_conversion.h"
 #include "reproduce.h" 
 #include "stats.h"
 #include "sample.h"
 #include "sample_all.h"
+#include "final_stats.h"
+#include "update_found.h"
+#include "update_genotypes.h"
+#include "final_vectors.h"
 
 /// main 
 int main ( int argc, char **argv ) {
@@ -69,23 +71,17 @@ int main ( int argc, char **argv ) {
     rng = gsl_rng_alloc( gsl_rng_taus2 ) ;
     gsl_rng_set( rng, (long) options.seed ) ;
 
-    /////////// for now, setting these to follow distributions of min/max:
-    // germline: baseline is 1.45e-8 (narismahan et al), active tRNAs ~10x higher, current range 1e-8 - 1e-5
-    // somatic: should be ~10x higher than germline (milholland et al). range for somatic will be between 1 - 100x higher than germline.
-    // deletion: no idea but maybe give a 4 order of magnitude range in narrowing down
-    // duplication: no idea but maybe give a 4 order of magnitude range in narrowing down
-    /////////////
-    // bergman sees ~1 / mil years in drosophila. we have ~90 species-specific tRNAs in humans over 7 million years (maybe overestimate)
-    // this is a proxy for deletion and duplication rates though
-    // how many duplications did we lose quickly? 
-    // look up some more studies on estimates and see what we can get
 
-    /// OLD :load in all bit score penalties from separate file:
-    // std::ifstream is(options.path + "allPenaltiesPct.txt") ;
-    // std::istream_iterator<double> start(is), end ;
-    // std::vector<double> mutation_penalties(start, end) ;
-
-
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// MUTATION PATHWAYS //////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
 
     // for random fitness drawing:
     std::map<int, vector<double>> mutations_to_function ;
@@ -102,15 +98,10 @@ int main ( int argc, char **argv ) {
             std::istream_iterator<double> start(is), end ;
             std::vector<double> mutation_penalties(start, end) ;
             mutations_to_function[i] = mutation_penalties ;
-            // if ( i == 1 ){
-            //     for ( int m = 1 ; m < mutation_penalties.size() ; ++m ){
-            //         cout << i << "\t" << (mutations_to_function[i])[m] << endl ;
-            //     }
-            // }
         }
     }
 
-    // load in mutation pathways from yeast data:
+    // assign each SNP to associated sequence score
     else {
         ifstream input(options.path + "functionDists/yeastGenotypePathways.txt") ;
         char const row_delim = '\n' ;
@@ -178,108 +169,204 @@ int main ( int argc, char **argv ) {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////// DEMOGRAPHY FILE ////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
 
+    std::map<int, int> branch_to_length ;
+    std::map<int, string> branch_to_node1 ;
+    std::map<int, string> branch_to_node2 ;
+    std::map<string, int> node_to_Ne ;
+    std::map<string,map<double,int>> node_to_final_found ;
+    std::map<string,map<string,int>> node_to_final_genotypes ;
+    std::map<string, vector<individual>> node_to_population ;
+    std::map<string, vector<gene*>> node_to_trna_bank ;
+    int last_branch = 0 ;
+    // add burn-in step, with Ne val from the root
+    branch_to_length[0] = options.burn_in ;
+    branch_to_node1[0] = "burn_in" ;
+    branch_to_node2[0] = "root" ;
+    if ( options.demography != "" ) {
+        ifstream file( options.demography , ios::in );
+        string node1, node2 ;
+        int branchLength, node1Ne, node2Ne ;
+        while ( file >> node1 >> node2 >> branchLength >> node1Ne >> node2Ne ) {
+            last_branch ++ ;
+            branch_to_length[last_branch] = branchLength / options.scaling_factor ;
+            branch_to_node1[last_branch] = node1 ;
+            branch_to_node2[last_branch] = node2 ;
+            node_to_Ne[node1] = node1Ne / options.scaling_factor ;
+            node_to_Ne[node2] = node2Ne / options.scaling_factor ;
+            // cout << last_branch << "\t" << branchLength << "\t" << node1 << "\t" << node2 << endl ;
+            // cout << last_branch << "\t" << branch_to_length[last_branch] << "\t" << node_to_Ne[node1] << "\t" << node_to_Ne[node2] << endl ;
+        }
+        file.close();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////// SIMULATION //////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    // enable sampling 
     if ( options.sample == true ){
         std::string sampling_out = std::to_string(options.run_num) + "_sample.txt" ;
         ofstream stream( sampling_out ) ;
         stream << "" ;
     }
 
-    /// trna bank
-    list<gene*> trna_bank ; 
-    cout << "TRNA_BANK MEMORY ADDRESS: " << &trna_bank << endl ;
-
-    /// reusable pointers
-    list<gene*> reusable_pointers ; 
-
     /// map of tRNA lifespans to count number of tRNAs that lived that long
     std::map<double, int> loci_to_lifespans ;
     std::map<int, int> lifespan_to_count ;
-    
-    // create population of size n with two tRNAs of equivalent function
-    initialize_population ( options, trna_bank, trna_counter ) ; 
-
-    /// now copy to population of size n
-    vector<individual> population ( options.n ) ;
-    for ( int i = 0 ; i < population.size() ; ++i ) { 
-    	for ( auto t : trna_bank ) { 
-    		population[i].maternal_trnas.push_back( t ) ;
-    		population[i].paternal_trnas.push_back( t ) ;
-    	}
-    }
-
-    // fitness vector
-    double fitness [options.n]  ;
 
     // optimal fitness based on inputs
     double opt_fit = (1 / sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) )) ;
-    
-    // evolve the population forward in time
-    for ( int g = 1 ; g <= options.generations ; g ++ ) {
 
-        // for first generation give user a quick reminder of what they did:
-        if ( g == 1 ){
-            cout << "somatic = " << options.somatic_rate ;
-            cout << ", germline = " << options.germline_rate ;
-            cout << ", dup = " << options.duplication_rate ;
-            cout << ", del = " << options.deletion_rate ;
-            cout << ", fitness function = " << options.fitness_func ;
-            if ( options.fitness_func == "exp" ){
-                cout << ", lambda = " << options.fitness_lambda ;
+    /////////////////////////////////////////
+    /////////////////////////////////////////
+    /////// NOT USING DEMOGRAPHY FILE ///////
+    /////////////////////////////////////////
+    /////////////////////////////////////////
+
+    if ( options.demography == "" ) {
+        // evolve the population forward in time
+        // create population of size n with two tRNAs of equivalent function
+        vector<gene*> trna_bank ; 
+        initialize_population ( options, trna_bank, trna_counter ) ; 
+
+        // fitness vector
+        double fitness [options.n]  ;
+
+        /// now copy to population of size n
+        vector<individual> population ( options.n ) ;
+        for ( int i = 0 ; i < population.size() ; ++i ) { 
+            for ( auto t : trna_bank ) { 
+                population[i].maternal_trnas.push_back( t ) ;
+                population[i].paternal_trnas.push_back( t ) ;
             }
-            else if ( options.fitness_func == "gaussian" ) {
-                cout << ", mean = " << options.fitness_mean << ", sd = " << options.fitness_sd ;
+        }
+
+        for ( int g = 1 ; g <= options.generations ; g ++ ) {
+
+            // for first generation give user a quick reminder of what they did:
+            if ( g == 1 ){
+                cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", dup = " << options.duplication_rate << ", del = "  ;
+                cout << options.deletion_rate << ", fitness function = " << options.fitness_func << ", gene conversion rate = " << options.gene_conversion_rate << endl ;
             }
-            else if ( options.fitness_func == "redundant" ) {
-                cout << ", minimum = " << options.min_fitness ;
+            
+            /// vector to swap with
+            vector<individual> new_population ( options.n ) ;
+
+            mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
+            compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
+            gene_conversion ( population, options, trna_bank, g, trna_counter ) ;
+            reproduce( fitness, population, new_population, options ) ;
+            swap( population, new_population ) ;
+            print_stats( fitness, population, g, trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
+
+            if (( options.sample_all == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
+                std::string sampling_out = std::to_string(options.run_num) + "_sample_all.txt" ;
+                sample_all( g, population, sampling_out, options ) ;
             }
-            cout << ", gene conversion rate = " << options.gene_conversion_rate << endl ;
+
+            else if (( options.sample == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
+                sample_individuals( g, population, options ) ;
+            }
         }
-        
-        /// vector to swap with
-        vector<individual> new_population ( options.n ) ;
-
-        /// somatic and germline mutations
-        mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
-
-        /// compute fitness
-        if ( ( options.fitness_func == "exp" ) or ( options.fitness_func == "exponential" ) ) {
-            compute_exp_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
-        }
-        else if ( options.fitness_func == "model" ) {
-            compute_model_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
-        }
-        else if ( options.fitness_func == "redundant" ) {
-            compute_redund_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
-        }
-        else {
-            compute_gaussian_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
-        }
-
-        /// non-allelic gene conversion
-        gene_conversion ( population, options, trna_bank, g, trna_counter ) ;
-        
-        /// reproduce w/ fitness + recombination
-        reproduce( fitness, population, new_population, options ) ;
-
-        /// swap populations
-        swap( population, new_population ) ;
-
-		/////// print stats
-        print_stats( fitness, population, g, trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
-
-        if (( options.sample_all == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
-            sample_all( g, population, options ) ;
-        }
-
-        else if (( options.sample == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
-            sample_individuals( g, population, options ) ;
-        }
-
     }
 
-    printf("Total time: %.2f seconds. Total generations: ", (double)(clock() - tStart)/CLOCKS_PER_SEC) ;
-    cout << options.generations << "." << endl ;
+    /////////////////////////////////////
+    /////////////////////////////////////
+    /////// USING DEMOGRAPHY FILE ///////
+    /////////////////////////////////////
+    /////////////////////////////////////
+
+    else {
+        for ( int branch = 0 ; branch <= last_branch ; branch ++ ) {
+
+            vector<individual> population ( node_to_Ne[branch_to_node2[branch]] ) ;
+            double fitness [node_to_Ne[branch_to_node2[branch]]] ;
+            vector<gene*> trna_bank ; 
+
+            // cout << "BRANCH: " << branch << ", length: " << branch_to_length[branch] << ", Ne: " << node_to_Ne[branch_to_node2[branch]] ;
+            // cout << ", node1: " << branch_to_node1[branch] << ", node2: " << branch_to_node2[branch] << endl ;
+            
+            // if no saved population, start from default settings
+            if ( !node_to_population.count( branch_to_node1[branch] ) ) {
+                initialize_population ( options, trna_bank, trna_counter ) ; 
+                for ( int i = 0 ; i < population.size() ; ++i ) { 
+                    for ( auto t : trna_bank ) { 
+                        population[i].maternal_trnas.push_back( t ) ;
+                        population[i].paternal_trnas.push_back( t ) ;
+                    }
+                }
+            }
+
+            // if population we already built, take it and then subsample to get one fitting the new ne
+            else {
+                // cout << "\n\n" << population.size() << "\n\n" ;
+                std::map<gene*, gene*> old_trna_to_new_trna ;
+                reduce_ne( options, node_to_population[branch_to_node1[branch]], population, node_to_trna_bank[branch_to_node1[branch]], trna_bank, old_trna_to_new_trna ) ;
+            }
+
+            // evolve the population forward in time
+            for ( int g = 1 ; g <= branch_to_length[branch] ; g ++ ) {
+                // for first generation give user a quick reminder of what they did:
+                if ( g == 1 ){
+                    cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", dup = " << options.duplication_rate << ", del = "  ;
+                    cout << options.deletion_rate << ", fitness function = " << options.fitness_func << ", gene conversion rate = " << options.gene_conversion_rate << endl ;
+                }
+                
+                /// vector to swap with
+                vector<individual> new_population ( population.size() ) ;
+
+                mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
+                compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
+                gene_conversion ( population, options, trna_bank, g, trna_counter ) ;
+                reproduce( fitness, population, new_population, options ) ;
+                swap( population, new_population ) ;
+                print_stats( fitness, population, g, trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
+
+                if (( options.sample_all == true ) and ( g % options.sampling_frequency == 0 )){
+                    std::string sampling_out = std::to_string(options.run_num) + "_" + branch_to_node1[branch] + "_to_" + branch_to_node2[branch] + "_sample_all.txt" ;
+                    sample_all( g, population, sampling_out, options ) ;
+                }
+                else if (( options.sample == true ) and ( g % options.sampling_frequency == 0 )){
+                    sample_individuals( g, population, options ) ;
+                }
+            }
+            node_to_population[branch_to_node2[branch]] = population ;
+            cout << branch_to_node2[branch] << ", " << population.size() << endl ;
+            node_to_trna_bank[branch_to_node2[branch]] = trna_bank ;
+            // std::string sampling_out = std::to_string(options.run_num) + "_" + branch_to_node1[branch] + "_to_" + branch_to_node2[branch] + "_final_population.txt" ;
+            // get_final_stats( population, sampling_out, options ) ;
+            update_found( population, branch_to_node2[branch], node_to_final_found, options ) ;
+            update_genotypes( population, branch_to_node2[branch], node_to_final_genotypes, options ) ;
+        }
+        cout << "running final vectors" << endl ;
+        std::string vector_out = std::to_string(options.run_num) + "_final_vector.txt" ;
+        final_vectors( node_to_final_found, node_to_final_genotypes, node_to_Ne, vector_out, options ) ;
+        
+    }
+
+    printf("Total time: %.2f seconds. ", (double)(clock() - tStart)/CLOCKS_PER_SEC) ;
+    if ( options.demography == "" ){
+        cout << "Total generations: " << options.generations << "." ;
+    }
+    cout << "\n" ;
     return(0) ;
 }
 

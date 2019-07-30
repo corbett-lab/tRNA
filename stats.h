@@ -1,13 +1,14 @@
 #ifndef __STATS_H
 #define __STATS_H
 
-void print_stats ( double fitness[], const vector<individual> &population, int g, list<gene*> &trna_bank, std::map<double, int> &loci_to_lifespans, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
+void print_stats ( double fitness[], const vector<individual> &population, int g, vector<gene*> &trna_bank, std::map<double, int> &loci_to_lifespans, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
     
     float trna_count = 0 ;
     float trna_pseudogenes = 0 ;
     float mean_fitness = 0.0 ;  
     map<gene*,int> found ; 
     map<double,int> found_loci ;
+    vector<double> temp_loci ;
 
 	/// go through and find all extant tRNAs
 	for ( int p = 0 ; p < population.size() ; p ++ ) { 
@@ -36,13 +37,19 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
 
         // if locus in loci_to_lifespans but not in found_loci, that means this locus's lifespan is over
         // - add lifespan length to lifespan_to_count as a key ++
-        // - erase from loci_to_lifespans
+        // - save locus to erase from loci_to_lifespans
         map<double, int>::iterator f ; 
         for ( f = loci_to_lifespans.begin() ; f != loci_to_lifespans.end() ; f ++ ){
             if ( !found_loci.count(f->first) ){
                 lifespan_to_count[f->second] ++ ;
-                loci_to_lifespans.erase( f->first ) ;
+                temp_loci.push_back( f->first ) ;
             }
+        }
+    }
+
+    for ( int i = 0 ; i < temp_loci.size() ; i ++ ){
+        if ( loci_to_lifespans.count( temp_loci[i] )){
+            loci_to_lifespans.erase( temp_loci[i] ) ;
         }
     }
 
@@ -57,7 +64,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
 		}
 	}
 
-    if ( g == 1 or ( g > options.burn_in and g % options.print_count == 0 ) or ( g == options.generations ) ) {
+    if ( g == 1 or ( options.demography == "" and g > options.burn_in and g % options.print_count == 0 ) or ( options.demography != "" and g % options.print_count == 0 ) or ( g == options.generations ) ) {
 
         cout << g << "\t" ;
         cout << mean_fitness/population.size() << "\t" ; 
@@ -70,7 +77,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
                     cout.precision(10) ;
                     cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" << (*t.first).expression << "_" << (*t.first).muts ;
                     cout << "_" << (*t.first).genotype << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << (*t.first).birth_mode << "_" << t.second  ;    
-                    if (t.second > options.n*2) {
+                    if (t.second > ( population.size()*2 ) ) {
                         cout << "\t" << "A tRNA HAS BEEN FOUND ON MORE CHROMOSOMES THAN THERE ARE CHROMOSOMES. EXITING PROGRAM." << endl ;
                         // a tRNA can NOT be found more times than there are chromosomes. Exit if this happens.
                         exit(0);

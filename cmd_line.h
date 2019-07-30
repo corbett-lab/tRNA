@@ -87,8 +87,14 @@ public:
     // won't start printing results until after this generation
     int burn_in ;
 
+    // amount 
+    int scaling_factor ;
+
     // path to fitness values for each number of mutations files
     string path ;
+
+    // path to demography file (user must specify whole thing otherwise will assume none)
+    string demography ;
 
     // mutation pathways bool
     bool mutation_pathways ;
@@ -110,6 +116,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     /// set parameter defaults
     n = 10000 ;
     generations = 10000000 ;
+    scaling_factor = 1 ;
 
     /// for now, setting these to follow distributions of min/max:
     //
@@ -149,15 +156,16 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     somatic_rate = 1.96e-5 ;
     deletion_rate = 3.63e-6 ; 
     duplication_rate = 3.72e-6 ; 
-    prob_cluster = 0.6 ; 
-    prob_segdup = 0.25 ;
     gene_conversion_rate = 2.5e-7 ;
 
-    // sampling parameters
-    sample = false ;
-    sample_all = false ;
+    prob_cluster = 0.6 ; 
+    prob_segdup = 0.25 ;
+
     sampling_frequency = 10000 ;
     sampling_count = 10 ;
+
+    sample = false ;
+    sample_all = false ;
 
     // mutation pathways flag
     mutation_pathways = false ;
@@ -191,6 +199,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     print_count = 1000 ;
     burn_in = 50000 ;
     path = "/Users/Bryan/Desktop/simulator_github/" ;
+    demography = "" ;
     // output_frequencies = false ;
     output_lifespans = false ;
     run_num = 0 ;
@@ -231,8 +240,11 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--dup") == 0 ) { 
             duplication_rate = atof(argv[++i]) ;
         }
-        if ( strcmp(argv[i],"-s") == 0 ) {
+        if ( strcmp(argv[i],"--seed") == 0 ) {
             seed = atoi(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--scale") == 0 ) {
+            scaling_factor = atoi(argv[++i]) ;
         }
         if ( strcmp(argv[i],"--start") == 0 ) {
             start_count = atoi(argv[++i]) ;
@@ -297,6 +309,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if (strcmp(argv[i],"--path") == 0 ) {
             path = argv[++i] ;
         }
+        if (strcmp(argv[i],"--demography") == 0 ) {
+            demography = argv[++i] ;
+        }
         if (strcmp(argv[i],"--function") == 0 ) {
             fitness_func = argv[++i] ;
         }
@@ -348,7 +363,20 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         if ( strcmp(argv[i],"--model4-deverr") == 0 ) {
             model4_deverr = atof(argv[++i]) ;
         }
+    }
 
+    if ( scaling_factor != 1 ){
+        germline_rate = germline_rate * scaling_factor ;
+        somatic_rate = somatic_rate * scaling_factor ;
+        deletion_rate = deletion_rate * scaling_factor ;
+        duplication_rate = duplication_rate * scaling_factor ;
+        gene_conversion_rate = gene_conversion_rate * scaling_factor ;
+        map_length = map_length / scaling_factor ;
+        n = n / scaling_factor ;
+        generations = generations / scaling_factor ;
+        sampling_frequency = sampling_frequency / scaling_factor ;
+        sampling_count = sampling_count / scaling_factor ;
+        burn_in = burn_in / scaling_factor ;
     }
     
     return ;

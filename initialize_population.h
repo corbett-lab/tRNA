@@ -2,7 +2,7 @@
 #define __INITIALIZE_POPULATION_H
 
 
-void initialize_population( cmd_line &options, list<gene*> &trna_bank, int &trna_counter ) {
+void initialize_population( cmd_line &options, vector<gene*> &trna_bank, int &trna_counter ) {
 
 
     ///////////////

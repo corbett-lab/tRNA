@@ -1,8 +1,7 @@
 #ifndef __SAMPLE_ALL_H
 #define __SAMPLE_ALL_H
 
-void sample_all( int g, const vector<individual> &population, cmd_line &options ) {
-	std::string sampling_out = std::to_string(options.run_num) + "_sample_all.txt" ;
+void sample_all( int g, const vector<individual> &population, std::string sampling_out, cmd_line &options ) {
     fstream stream( sampling_out, std::fstream::in | std::fstream::out | std::fstream::app ) ;
 	for ( int i = 0 ; i < population.size() ; ++i ){
 		stream << g ;

@@ -5,7 +5,7 @@
 // sort container by locus
 bool sortByLocus(gene* a, gene* b) { return (a->locus < b->locus); }
 
-void mutate( vector<individual> &population, cmd_line &options, list<gene*> &trna_bank, int current_gen, int &trna_counter, std::map<int,vector<double>> &mutations_to_function, std::map<string,double> &genotype_to_fitness, std::map<string,vector<string>> &genotype_to_genotypes, std::map<string,vector<double>> &genotype_to_fitnesses ) {
+void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &trna_bank, int current_gen, int &trna_counter, std::map<int,vector<double>> &mutations_to_function, std::map<string,double> &genotype_to_fitness, std::map<string,vector<string>> &genotype_to_genotypes, std::map<string,vector<double>> &genotype_to_fitnesses ) {
     
     ///////////// MISC EARLY THOUGHTS I DON'T WANT TO COMPLETELY DELETE:
     // - fitness must have something against total duplicate genes, otherwise will just keep growing

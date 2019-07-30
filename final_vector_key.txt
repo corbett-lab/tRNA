@@ -1,0 +1,16 @@
+0:
+1: 	chimp
+2: 	gor
+3: 	human
+4: 	orang
+5: 	chimp	gor
+6: 	chimp	human
+7: 	chimp	orang
+8: 	gor	human
+9: 	gor	orang
+10: 	human	orang
+11: 	chimp	gor	human
+12: 	chimp	gor	orang
+13: 	chimp	human	orang
+14: 	gor	human	orang
+15: 	chimp	gor	human	orang
