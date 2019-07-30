@@ -16,11 +16,13 @@ To run, simply type ./tRNA
 **-m**: length of genome in morgans (default: 30.0)  
 
 **--print**: generation printing interval (--print 500 will print every 500 generations, etc.)  
+**--quiet**: print only the basic population-level statistics each time    
 **-b**: burn-in - output will start printing after a set number of generations pass (-b 0 prints results starting from beginning, -b 50000 prints only after 50000 generations have passed)  
 **--path**: the path to the directory where the functionDists directory is located (necessary for reading in mutation effects)  
-**-s**: seed, to ensure non-unique results on many simulations begun at the same time  
+**--seed**: seed, to ensure non-unique results on many simulations begun at the same time  
 **--run**: run name, to name folders for optional output of each run  
 **--sample**: whether or not you want to sample individuals from the population (default: false)  
+**--sample-all**: whether or not you want to sample ALL individuals from the population at a given time (i.e. --sample-count == -n) (default: false)  
 **--sample-freq**: sample every ____ generations (default: 10,000)  
 **--sample-count**: sample ____ individuals each time (default: 10)  
 **--quiet**: use if you are not interested in printing every tRNA's stats every time (default: false)  
@@ -43,6 +45,10 @@ To run, simply type ./tRNA
 **--fitmean**: cumulative expression of tRNAs rqeuired for fitness 1.0 under "gaussian" function (default: 10.52110756)  
 **--fitsd**: standard deviation of gaussian fitness function (default: fitmean/4.0)  
 **--fitlambda**: lambda value for exponential fitness function (default: -15.0)  
+
+**--demography**: use a demography file to simulate multiple branches of a phylogeny (an example is provided)  
+
+**--scale**: scale population down for faster results. divides burn-in, generations, map length, population size, sampling freq, sampling count and all population and generation values in demography file by scaling factor provided; multiplies germline rate, somatic rate, deletion rate, duplication rate, gene conversion rate by scaling factor provided.  
 
 #### The following are based on the Nowak paper linked above:
 
