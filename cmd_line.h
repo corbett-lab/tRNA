@@ -35,6 +35,13 @@ public:
     double deletion_rate ;
     double duplication_rate ;
 
+    /// somatic cnv
+    double somatic_del ;
+    double somatic_dup ;
+
+    /// somatic dup as a fraction of somatic del
+    double somatic_dup_mult ;
+
     // start with pseudogene or no
     bool pseudogene ;
     
@@ -154,8 +161,14 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     germline_rate = 1e-6 ;
     somatic_rate = 1.96e-5 ;
-    deletion_rate = 3.63e-6 ; 
-    duplication_rate = 3.72e-6 ; 
+    deletion_rate = 3.7e-6 ; 
+    duplication_rate = 3.7e-6 ; 
+    somatic_del = 3.7e-6 ;
+
+    /// somatic deletion rate is almost certainly higher than somatic del
+    /// so let's map somatic dup as some fraction of somatic del (from 0.0 to 1.0x sdel)
+    somatic_dup_mult = 1.0 ;
+
     gene_conversion_rate = 2.5e-7 ;
 
     prob_cluster = 0.6 ; 
@@ -239,6 +252,12 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if ( strcmp(argv[i],"--dup") == 0 ) { 
             duplication_rate = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--sdel") == 0 ) { 
+            somatic_del = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--sdup") == 0 ) { 
+            somatic_dup_mult = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"--seed") == 0 ) {
             seed = atoi(argv[++i]) ;
@@ -365,11 +384,15 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
     }
 
+    somatic_dup = somatic_dup_mult * somatic_del ;
+
     if ( scaling_factor != 1 ){
         germline_rate = germline_rate * scaling_factor ;
         somatic_rate = somatic_rate * scaling_factor ;
         deletion_rate = deletion_rate * scaling_factor ;
         duplication_rate = duplication_rate * scaling_factor ;
+        somatic_del = somatic_del * scaling_factor ;
+        somatic_dup = somatic_dup * scaling_factor ;
         gene_conversion_rate = gene_conversion_rate * scaling_factor ;
         map_length = map_length / scaling_factor ;
         n = n / scaling_factor ;

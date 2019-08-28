@@ -1,10 +1,11 @@
 #ifndef __FINAL_VECTORS_H
 #define __FINAL_VECTORS_H
 
-void final_vectors( std::map<string,map<double,int>> &node_to_final_found, std::map<string,map<string,int>> &node_to_final_genotypes, std::map<string, int> &node_to_Ne, std::string vector_out, cmd_line &options ) {
+void final_vectors( std::map<string,map<double,int>> &node_to_final_found_active, std::map<string,map<double,int>> &node_to_final_found_inactive, std::map<string,map<string,int>> &node_to_final_genotypes, std::map<string, int> &node_to_Ne, std::string vector_out, cmd_line &options ) {
 
 	map<string, int>::iterator p ;
-	map<double, vector<string>> locus_to_nodes ;
+	map<double, vector<string>> locus_to_nodes_active ;
+	map<double, vector<string>> locus_to_nodes_inactive ;
 	map<string, vector<string>> genotype_to_nodes ;
 	vector<string> my_nodes ;
 
@@ -14,10 +15,11 @@ void final_vectors( std::map<string,map<double,int>> &node_to_final_found, std::
 	for ( p = node_to_Ne.begin() ; p != node_to_Ne.end() ; p ++ ) {
 		if ( ( (p->first).find("anc") == std::string::npos ) and ( (p->first).find("root") == std::string::npos ) and ( (p->first).find("int") == std::string::npos ) ) {
 			my_nodes.push_back( p->first ) ;
-			for ( auto l : node_to_final_found[p->first] ){
-				if ( l.second >= (node_to_Ne[p->first] ) ){
-					locus_to_nodes[l.first].push_back( p->first ) ;
-				}
+			for ( auto l : node_to_final_found_active[p->first] ){
+				locus_to_nodes_active[l.first].push_back( p->first ) ;
+			}
+			for ( auto l : node_to_final_found_inactive[p->first] ){
+				locus_to_nodes_inactive[l.first].push_back( p->first ) ;
 			}
 			for ( auto l : node_to_final_genotypes[p->first] ){
 				if ( l.second >= (node_to_Ne[p->first] ) ){
@@ -48,16 +50,28 @@ void final_vectors( std::map<string,map<double,int>> &node_to_final_found, std::
 
 	// now go through and count the number of loci corresponding to each combination of species
 	// output them as a vector that can easily be built into exchangeable matrix with other simulations
-	vector<int> final_vector ( x ) ;
+	vector<int> final_vector_active ( x ) ;
+	vector<int> final_vector_inactive ( x ) ;
 	map<double, vector<string>>::iterator l ;
-	for ( l = locus_to_nodes.begin() ; l != locus_to_nodes.end() ; l ++ ) {
+	for ( l = locus_to_nodes_active.begin() ; l != locus_to_nodes_active.end() ; l ++ ) {
 		cout << (l->first) << "\t" ;
 		for ( int i = 0 ; i < (l->second).size() ; i ++ ){
 			cout << l->second[i] << "\t" ; 
 		}
 		cout << endl ;
 		if ( nodes_to_index.count( l->second ) ) {
-			final_vector[nodes_to_index[l->second]] ++ ;
+			final_vector_active[nodes_to_index[l->second]] ++ ;
+		}
+	}
+
+	for ( l = locus_to_nodes_inactive.begin() ; l != locus_to_nodes_inactive.end() ; l ++ ) {
+		cout << (l->first) << "\t" ;
+		for ( int i = 0 ; i < (l->second).size() ; i ++ ){
+			cout << l->second[i] << "\t" ; 
+		}
+		cout << endl ;
+		if ( nodes_to_index.count( l->second ) ) {
+			final_vector_inactive[nodes_to_index[l->second]] ++ ;
 		}
 	}
 
@@ -75,9 +89,13 @@ void final_vectors( std::map<string,map<double,int>> &node_to_final_found, std::
 	}
 
 	fstream stream( vector_out, std::fstream::out ) ;
-	stream << "LOCUS_VECTOR:\n" ;
-	for ( int i = 1 ; i < final_vector.size() ; i ++ ){
-		stream << i-1 << "\t" << final_vector[i] << "\n" ;
+	stream << "ACTIVE_VECTOR:\n" ;
+	for ( int i = 1 ; i < final_vector_active.size() ; i ++ ){
+		stream << i-1 << "\t" << final_vector_active[i] << "\n" ;
+	}
+	stream << "INACTIVE_VECTOR:\n" ;
+	for ( int i = 1 ; i < final_vector_inactive.size() ; i ++ ){
+		stream << i-1 << "\t" << final_vector_inactive[i] << "\n" ;
 	}
 	stream << "GENOTYPE_VECTOR:\n" ;
 	for ( int i = 1 ; i < final_g_vector.size() ; i ++ ){

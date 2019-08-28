@@ -3,10 +3,8 @@
 
 class individual {
 public:
-
     vector<gene*> maternal_trnas ; 
     vector<gene*> paternal_trnas ;
-
 } ;
 
 #endif

@@ -46,7 +46,7 @@ To run, simply type ./tRNA
 **--fitsd**: standard deviation of gaussian fitness function (default: fitmean/4.0)  
 **--fitlambda**: lambda value for exponential fitness function (default: -15.0)  
 
-**--demography**: use a demography file to simulate multiple branches of a phylogeny (an example is provided)  
+**--demography**: use a demography file to simulate multiple branches of a phylogeny. in the file, each line represents one branch of a phylogeny.  
 
 **--scale**: scale population down for faster results. divides burn-in, generations, map length, population size, sampling freq, sampling count and all population and generation values in demography file by scaling factor provided; multiplies germline rate, somatic rate, deletion rate, duplication rate, gene conversion rate by scaling factor provided.  
 

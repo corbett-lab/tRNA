@@ -17,10 +17,11 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
     // - how to model without biasing some ideal number of tRNAs to have
     // 
 
+    //////////////////////////////
+    ///// GERMLINE MUTATIONS /////
+    //////////////////////////////
 
-    // germline mutations
     for ( int i = 0 ; i < population.size() ; ++i ) {
-    //tbb::parallel_for ( size_t(0) , size_t(population.size()), [&] (size_t i) ) {
 
         // maternal germline block
         for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
@@ -77,7 +78,10 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
         }
     }
 
-    // duplications
+    ////////////////////////
+    ///// DUPLICATIONS /////
+    ////////////////////////
+
     for ( int i = 0 ; i < population.size() ; ++i ) {
 
         // maternal duplication block
@@ -111,19 +115,19 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                 // nonlocal - retro-transposition - jump to a random locus in genome, get new expression randomly as function of new locus
                 // local - unequal crossing-over - new locus and expression close to progenitor
                 // segdup - locus very close to progenitor and expression exact same as progenitor
-                if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
-                    new_trna->birth_mode = 'n' ;
-                    nonlocal( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ;
-                }
-                else {
-                    if ( gsl_ran_bernoulli( rng, 1 - options.prob_segdup ) ) {
-                        new_trna->birth_mode = 'l' ;
-                        local( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ;
-                    }
-                    else {
+                if ( gsl_ran_bernoulli( rng, options.prob_cluster ) ) {
+                    if ( gsl_ran_bernoulli( rng, options.prob_segdup ) ) {
                         new_trna->birth_mode = 's' ;
                         segdup( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ;
                     }
+                    else {
+                        new_trna->birth_mode = 'l' ;
+                        local( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ;
+                    }
+                }
+                else {
+                    new_trna->birth_mode = 'n' ;
+                    nonlocal( population[i].maternal_trnas[g], new_trna, temp_loci, options ) ; 
                 }
                 temp_loci.clear() ;
                 trna_counter ++ ;
@@ -160,20 +164,20 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                     }
                 }
 
-                // same as above
-                if ( gsl_ran_bernoulli( rng, 1 - options.prob_cluster ) ) {
-                    new_trna->birth_mode = 'n' ;
-                    nonlocal( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ;
-                }
-                else {
-                    if ( gsl_ran_bernoulli( rng, 1 - options.prob_segdup ) ) {
-                        new_trna->birth_mode = 'l' ;
-                        local( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ;
-                    }
-                    else {
+                /// same as above
+                if ( gsl_ran_bernoulli( rng, options.prob_cluster ) ) {
+                    if ( gsl_ran_bernoulli( rng, options.prob_segdup ) ) {
                         new_trna->birth_mode = 's' ;
                         segdup( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ;
                     }
+                    else {
+                        new_trna->birth_mode = 'l' ;
+                        local( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ;
+                    }
+                }
+                else {
+                    new_trna->birth_mode = 'n' ;
+                    nonlocal( population[i].paternal_trnas[g], new_trna, temp_loci, options ) ; 
                 }
                 temp_loci.clear() ;
                 trna_counter ++ ;
@@ -185,7 +189,10 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
 
     }
 
-    // delete tRNAs
+    /////////////////////
+    ///// DELETIONS /////
+    /////////////////////
+
     for ( int i = 0 ; i < population.size() ; ++i ) {
         // maternal deletion block
         for ( int g = population[i].maternal_trnas.size() -1 ; g > -1 ; g -- ) {

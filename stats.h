@@ -1,7 +1,7 @@
 #ifndef __STATS_H
 #define __STATS_H
 
-void print_stats ( double fitness[], const vector<individual> &population, int g, vector<gene*> &trna_bank, std::map<double, int> &loci_to_lifespans, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
+void print_stats ( double fitness[], const vector<individual> &population, int g, int end_gen, string pop_name, vector<gene*> &trna_bank, std::map<double, int> &loci_to_lifespans, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
     
     float trna_count = 0 ;
     float trna_pseudogenes = 0 ;
@@ -32,17 +32,18 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
         // have collected all extant loci in found_loci in map so no double-counting
         // if locus in found_loci but not in loci_to_lifespans, add to loci_to_lifespans + 1
         for ( auto f : found_loci ){
-            loci_to_lifespans[f.first] ++ ;
+            if ( (loci_to_lifespans.count(f.first)) or (f.second == (2*population.size())) ){
+                loci_to_lifespans[f.first] ++ ;
+            }
         }
 
         // if locus in loci_to_lifespans but not in found_loci, that means this locus's lifespan is over
         // - add lifespan length to lifespan_to_count as a key ++
         // - save locus to erase from loci_to_lifespans
-        map<double, int>::iterator f ; 
-        for ( f = loci_to_lifespans.begin() ; f != loci_to_lifespans.end() ; f ++ ){
-            if ( !found_loci.count(f->first) ){
-                lifespan_to_count[f->second] ++ ;
-                temp_loci.push_back( f->first ) ;
+        for ( auto f : loci_to_lifespans ){
+            if ( !found_loci.count(f.first) ){
+                lifespan_to_count[f.second] ++ ;
+                temp_loci.push_back( f.first ) ;
             }
         }
     }
@@ -89,16 +90,16 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
     }
 
     // OUTPUT LIFESPAN DISTRIBUTION
-    if ( g == options.generations ){
+    if ( g == end_gen ){
 
         map<double, int>::iterator f ; 
-        for ( f = loci_to_lifespans.begin() ; f != loci_to_lifespans.end() ; f ++ ){
-            lifespan_to_count[f->second] ++ ;
+        for ( auto f : loci_to_lifespans ){
+            lifespan_to_count[f.second] ++ ;
         }
 
         // output lifespan map to a file
         if ( options.output_lifespans == true ){
-            std::string lifespan_log = "lifespanLog" + std::to_string(options.run_num) + ".txt" ;
+            std::string lifespan_log = pop_name + "_lifespan_log" + std::to_string(options.run_num) + ".txt" ;
             ofstream stream( lifespan_log ) ;
             for ( auto l : lifespan_to_count ) {
                 stream << l.first << "\t" << l.second << "\n" ;
