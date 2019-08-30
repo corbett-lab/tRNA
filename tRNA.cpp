@@ -37,7 +37,6 @@ const gsl_rng *rng ;
 #include "individual.h"
 #include "initialize_population.h"
 #include "reduce_ne.h"
-#include "assign_sequence.h"
 #include "assign_genotype.h"
 #include "duplication.h"
 #include "mutate.h"

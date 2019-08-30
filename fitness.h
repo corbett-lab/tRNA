@@ -34,48 +34,92 @@ void compute_redund_fitness( double fitness[], vector<individual> &population, s
         // maternal fitness block
         for ( int g = 0 ; g < population[i].maternal_trnas.size() ; g ++ ) {
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
+                // somatic SNP
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                total_function += (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    total_function += temp_function ;
+                                }
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                            total_function += (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
+                            total_function += (gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                            total_function += ( ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            total_function += (gsl_rng_uniform(rng) *  ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression)) ;
                         }
                     }
                 }
+                // no somatic SNP
                 else {
                     total_function += (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
                 }
+                // somatic dup
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    total_function += (((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
+                    total_function += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
+            }
+            // somatic dup affected uniform dist number of cells
+            else {
+                total_function += ( gsl_rng_uniform(rng) * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ) ;
             }
         }
 
         // paternal fitness block
         for ( int g = 0 ; g < population[i].paternal_trnas.size() ; g ++ ) {
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
+                // somatic SNP
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                total_function += (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma )) * (*population[i].paternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    total_function += temp_function ;
+                                }
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                            total_function += (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
+                            total_function += (gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                            total_function += ( ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            total_function += (gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
                         }
                     }
                 }
+                // no somatic SNP
                 else {
                     total_function += (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
                 }
+                // somatic dup
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    total_function += (((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
+                    total_function += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
+            }
+            // somatic del affected uniform dist number of cells
+            else{
+                total_function += ( gsl_rng_uniform(rng) * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
             }
         }
 
@@ -84,11 +128,9 @@ void compute_redund_fitness( double fitness[], vector<individual> &population, s
         if (fitness[i] > 1.0) {
             fitness[i] = 1.0 ;
         }
-
-        if ( fitness[i] > 1.0 ) {
-            cout << "FITNESS > 1.0:\t" << fitness[i] << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;
-            exit(0);
-        } 
+        if (fitness[i] < 0.0) {
+            fitness[i] = 0.0 ;
+        }
     }
 }
 
@@ -201,16 +243,33 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                 if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                     if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                         if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
-                            if ( options.mutation_pathways == false ){
+                            double temp = (gsl_rng_uniform(rng)) ;
+                            if ( options.dual_rates == true ){
+                                if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                    if (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
+                                        max_function = temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
+                                    }
+                                }
+                                else {
+                                    double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                    if ( temp_gamma > 1.0 ){
+                                        temp_gamma = 1.0 ;
+                                    }
+                                    if ((temp * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) > max_function ){
+                                        max_function = (temp * ((*population[i].maternal_trnas[g]).sequence - temp_gamma) * (*population[i].maternal_trnas[g]).expression) ;
+                                    }
+                                }
+                            }
+                            else if ( options.mutation_pathways == false ){
                                 int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                                if (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
-                                    max_function = ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                                if (temp * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                                    max_function = (temp * (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
                                 }
                             }
                             else{
                                 int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                                if (((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
-                                    max_function = ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                                if (temp * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                                    max_function = (temp * (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
                                 }
                             }
                         } 
@@ -220,10 +279,11 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                             max_function = ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                         }
                     }
-                    if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                       if (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
-                            max_function = ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ;
-                        }
+                }
+                else {
+                    double temp = gsl_rng_uniform(rng) ;
+                    if (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                        max_function = (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ) ;
                     }
                 }
             }
@@ -233,16 +293,33 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                 if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                     if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                         if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
-                            if ( options.mutation_pathways == false ){
+                            double temp = (gsl_rng_uniform(rng)) ;
+                            if ( options.dual_rates == true ){
+                                if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                    if (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
+                                        max_function = temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
+                                    }
+                                }
+                                else {
+                                    double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                    if ( temp_gamma > 1.0 ){
+                                        temp_gamma = 1.0 ;
+                                    }
+                                    if ((temp * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) > max_function ){
+                                        max_function = (temp * ((*population[i].paternal_trnas[g]).sequence - temp_gamma) * (*population[i].paternal_trnas[g]).expression) ;
+                                    }
+                                }
+                            }
+                            else if ( options.mutation_pathways == false ){
                                 int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                                if (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                                    max_function = ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                                if ( temp * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                                    max_function = ( temp * (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
                                 }
                             }
                             else{
                                 int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                                if (((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                                    max_function = ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                                if ( temp * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                                    max_function = ( temp * (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
                                 }
                             }
                         }
@@ -253,20 +330,27 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                         }
                     }
                     if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                        if (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
-                            max_function = ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ;
+                        double temp = gsl_rng_uniform(rng) ;
+                        if ( temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
+                            max_function = ( temp * (*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ;
                         }
                     }
-
+                }
+                else {
+                    double temp = gsl_rng_uniform(rng) ;
+                    if (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function ){
+                        max_function = temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
+                    }
                 }
             }
 
             fitness[i] = max_function ;
-            if ( max_function > 1.0 ) {
-                cout << "FITNESS > 1.0:\t" << max_function << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;
-                exit(0);
-            } 
-            //cout << max_function << endl ;
+            if (fitness[i] > 1.0) {
+                fitness[i] = 1.0 ;
+            }
+            if (fitness[i] < 0.0) {
+                fitness[i] = 0.0 ;
+            }
         }
     }
 }
@@ -287,13 +371,28 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                x_ind += gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    x_ind += temp_function ;
+                                }   
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            x_ind += ( gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
                         }
                         else {
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            x_ind += ( gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -302,8 +401,11 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                     x_ind += ( ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
                 }
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    x_ind += ( ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
+                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
+            }
+            else {
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
             }
         }
 
@@ -312,13 +414,28 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                x_ind += gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    x_ind += temp_function ;
+                                }
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            x_ind += ( gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
                         }
                         else {
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            x_ind += ( gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -327,17 +444,21 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                     x_ind += ( ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression) ) ;
                 }
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    x_ind += ( ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
                 }
+            }
+            else {
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
             }
         }
 
         fitness[i] = (1 / temp_con ) * ( exp(-1 * ( (pow((x_ind - options.fitness_mean), 2)) / (2 * (pow(options.fitness_sd, 2))) ) ) ) / opt_fit ;
-        if ( fitness[i] > 1.0 ) {
-            cout << "FITNESS > 1.0:\t" << fitness[i] << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;
-            exit(0);
+        if (fitness[i] > 1.0) {
+            fitness[i] = 1.0 ;
         }
-
+        if (fitness[i] < 0.0) {
+            fitness[i] = 0.0 ;
+        }
     }
 }
 
@@ -367,7 +488,22 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                x_ind += gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    x_ind += temp_function ;
+                                }
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
                             x_ind += ( ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
                         }
@@ -382,8 +518,11 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                     x_ind += ( ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
                 }
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    x_ind += ( ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
                 }
+            }
+            else {
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
             }
         }
 
@@ -392,7 +531,22 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
             if ( !gsl_ran_bernoulli( rng, options.somatic_del ) ){
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
-                        if ( options.mutation_pathways == false ){
+                        if ( options.dual_rates == true ){
+                            if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                x_ind += gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
+                            }
+                            else {
+                                double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
+                                if ( temp_gamma > 1.0 ){
+                                    temp_gamma = 1.0 ;
+                                }
+                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                if ( temp_function > 0.0 ){
+                                    x_ind += temp_function ;
+                                }
+                            }
+                        }
+                        else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
                             x_ind += ( ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
                         }
@@ -407,8 +561,11 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                     x_ind += ( ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression) ) ;
                 }
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    x_ind += ( ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
                 }
+            }
+            else {
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
             }
         }
 
@@ -421,9 +578,11 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
 
     for ( int i = 0 ; i < population.size() ; ++i ) {
         fitness[i] = 1.0 - exp(options.fitness_lambda * (temp_fitness[i] / max_fitness)) ;
-        if ( fitness[i] > 1.0 ) {
-            cout << "FITNESS > 1.0:\t" << fitness[i] << "\tFITNESS NOT ALLOWED TO BE > 1.0. EXITING PROGRAM." << endl ;
-            exit(0);
+        if (fitness[i] > 1.0) {
+            fitness[i] = 1.0 ;
+        }
+        if (fitness[i] < 0.0) {
+            fitness[i] = 0.0 ;
         }
     }
 }

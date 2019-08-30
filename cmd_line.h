@@ -30,6 +30,12 @@ public:
     /// mutation rates
     double germline_rate ;
     double somatic_rate ;
+
+    // gamma / desroy model
+    bool dual_rates ;
+    double gamma_shape ;
+    double gamma_scale ;
+    double prop_destroy ;
     
     /// duplicate and deletion rates
     double deletion_rate ;
@@ -165,6 +171,12 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     duplication_rate = 3.7e-6 ; 
     somatic_del = 3.7e-6 ;
 
+    // gamma model:
+    dual_rates = false ;
+    gamma_shape = 0.2 ;
+    gamma_scale = 0.035 ;
+    prop_destroy = 0.5 ;
+
     /// somatic deletion rate is almost certainly higher than somatic del
     /// so let's map somatic dup as some fraction of somatic del (from 0.0 to 1.0x sdel)
     somatic_dup_mult = 1.0 ;
@@ -246,6 +258,18 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if ( strcmp(argv[i],"--us") == 0 ) {
             somatic_rate = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--dual-rates") == 0 ) {
+            dual_rates = true ;
+        }
+        if ( strcmp(argv[i],"--gamma-shape") == 0 ) {
+            gamma_shape = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--gamma-scale") == 0 ) {
+            gamma_scale = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--pd") == 0 ) {
+            prop_destroy = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"--del") == 0 ) { 
             deletion_rate = atof(argv[++i]) ;

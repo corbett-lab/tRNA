@@ -37,11 +37,14 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                 new_trna->birth = (*population[i].maternal_trnas[g]).birth ;
                 new_trna->progenitor = (*population[i].maternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
-                if ( options.mutation_pathways == false ){
-                    assign_sequence( population[i].maternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                if ( options.dual_rates == true ){
+                    assign_genotype_gamma( population[i].maternal_trnas[g], new_trna, options ) ;
+                }
+                else if ( options.mutation_pathways == false ){
+                    assign_genotype_model( population[i].maternal_trnas[g], new_trna, mutations_to_function, options ) ;
                 }
                 else {
-                    assign_genotype( population[i].maternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
+                    assign_genotype_pathways( population[i].maternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
                 }
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
@@ -64,11 +67,14 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                 new_trna->birth = (*population[i].paternal_trnas[g]).birth ;
                 new_trna->progenitor = (*population[i].paternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
-                if ( options.mutation_pathways == false ){
-                    assign_sequence( population[i].paternal_trnas[g], new_trna, mutations_to_function, options ) ;
+                if ( options.dual_rates == true ){
+                    assign_genotype_gamma( population[i].paternal_trnas[g], new_trna, options ) ;
+                }
+                else if ( options.mutation_pathways == false ){
+                    assign_genotype_model( population[i].paternal_trnas[g], new_trna, mutations_to_function, options ) ;
                 }
                 else {
-                    assign_genotype( population[i].paternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
+                    assign_genotype_pathways( population[i].paternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
                 }
                 trna_counter ++ ;
                 new_trna->name = trna_counter ;
