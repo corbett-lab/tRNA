@@ -39,39 +39,58 @@ void compute_redund_fitness( double fitness[], vector<individual> &population, s
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                // if mutation destroys tRNA, draw number of tissues NOT affected (1 - uniform = uniform) times normal fitness effect of tRNA
                                 total_function += (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
                             }
                             else {
+                                // if mutation doesn't destroy the tRNA, draw a gamma effect
                                 double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    total_function += temp_function ;
-                                }
+                                // fitness effect += proportion of cells affected times tRNA with gamma effect
+                                // also add in the rest of the tissues, which have a genotype without the somatic SNP
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                total_function += temp_function + ((1.0 - temp_prop) * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression)) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
+                            // draw mutation effect and proportion of tissues affected
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                            total_function += (gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            // add in tissues affected * mutation effect
+                            // also add in rest of tissues times normal genotype
+                            total_function += (temp_prop * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
+                            total_function += ((1.0 - temp_prop) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                            total_function += (gsl_rng_uniform(rng) *  ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression)) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            // add in tissues affected * mutation effect
+                            // also add in rest of tissues times normal phenotype
+                            total_function += (temp_prop * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression)) ;
+                            total_function += ((1.0 - temp_prop) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
                         }
                     }
                 }
                 // no somatic SNP
                 else {
+                    // just add normal genotype
                     total_function += (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ;
                 }
+
                 // somatic dup
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    total_function += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
+                    // draw tissues affected
+                    double temp_prop = gsl_rng_uniform(rng) ;
+                    // assume a local duplication for simplicity, we have no idea how somatic dups are expressed
+                    // add effect of dup times tissues affected
+                    // don't need to add the rest because you've already accounted for normal genotype (under no somatic SNP)
+                    total_function += (temp_prop * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
             }
-            // somatic dup affected uniform dist number of cells
+            // if deletion, same thing as a SNP that destroys all tRNA function
             else {
                 total_function += ( gsl_rng_uniform(rng) * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) ) ;
             }
@@ -85,41 +104,60 @@ void compute_redund_fitness( double fitness[], vector<individual> &population, s
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
+                                // if mutation destroys tRNA, draw number of tissues NOT affected (1 - uniform = uniform) times normal fitness effect of tRNA
                                 total_function += (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
                             }
                             else {
+                                // if mutation doesn't destroy the tRNA, draw a gamma effect
                                 double temp_gamma = gsl_ran_gamma( rng, options.gamma_shape, options.gamma_scale ) ;
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma )) * (*population[i].paternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    total_function += temp_function ;
-                                }
+                                // fitness effect += proportion of cells affected times tRNA with gamma effect
+                                // also add in the rest of the tissues, which have a genotype without the somatic SNP
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                total_function += temp_function + ((1.0 - temp_prop) * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
+                            // draw mutation effect and proportion of tissues affected
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                            total_function += (gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            // add in tissues affected * mutation effect
+                            // also add in rest of tissues times normal genotype
+                            total_function += (temp_prop * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
+                            total_function += ((1.0 - temp_prop) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                            total_function += (gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            // add in tissues affected * mutation effect
+                            // also add in rest of tissues times normal phenotype
+                            total_function += (temp_prop * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression)) ;
+                            total_function += ((1.0 - temp_prop) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
                         }
                     }
                 }
                 // no somatic SNP
                 else {
+                    // just add normal genotype
                     total_function += (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ;
                 }
+
                 // somatic dup
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    total_function += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
+                    // draw tissues affected
+                    double temp_prop = gsl_rng_uniform(rng) ;
+                    // assume a local duplication for simplicity, we have no idea how somatic dups are expressed
+                    // add effect of dup times tissues affected
+                    // don't need to add the rest because you've already accounted for normal genotype (under no somatic SNP)
+                    total_function += (temp_prop * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
             }
-            // somatic del affected uniform dist number of cells
-            else{
-                total_function += ( gsl_rng_uniform(rng) * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
+            // if deletion, same thing as a SNP that destroys all tRNA function
+            else {
+                total_function += ( gsl_rng_uniform(rng) * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) ) ;
             }
         }
 
@@ -245,6 +283,7 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                         if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
                             double temp = (gsl_rng_uniform(rng)) ;
                             if ( options.dual_rates == true ){
+                                // if mutation destroys tRNA, need proportion of tissues NOT affected times normal genotype
                                 if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                     if (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
                                         max_function = temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
@@ -255,34 +294,47 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                                     if ( temp_gamma > 1.0 ){
                                         temp_gamma = 1.0 ;
                                     }
-                                    if ((temp * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) > max_function ){
-                                        max_function = (temp * ((*population[i].maternal_trnas[g]).sequence - temp_gamma) * (*population[i].maternal_trnas[g]).expression) ;
+                                    // store function of mutation effect times proportion of tissues affected
+                                    double temp_function = (temp * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                    // also get unaffected tissues * normal genotype
+                                    if ( temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) > max_function ){
+                                        max_function = (temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression)) ;
                                     }
                                 }
                             }
                             else if ( options.mutation_pathways == false ){
                                 int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                                if (temp * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
-                                    max_function = (temp * (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                                // store function of mutation effect times proportion of tissues affected
+                                double temp_function = (temp * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
+                                // also get unaffected tissues * normal genotype
+                                if ( temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) > max_function ){
+                                    max_function = (temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression)) ;
                                 }
                             }
                             else{
                                 int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                                if (temp * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression > max_function ){
-                                    max_function = (temp * (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression ;
+                                // store function of mutation effect times proportion of tissues affected
+                                double temp_function = (temp * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * (*population[i].maternal_trnas[g]).expression) ;
+                                // also get unaffected tissues * normal genotype
+                                if ( temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression) > max_function ){
+                                    max_function = (temp_function + ((1.0 - temp) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression)) ;
                                 }
                             }
                         } 
                     }
+                    // no somatic SNP, just use normal genotype
                     else {
                         if (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function){
                             max_function = ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                         }
                     }
+                    // somatic dup doesn't make much sense in this fitness function
+                    // if we're only looking at your best tRNA, a copy of that tRNA won't be better than the one it is a copy of
                 }
+                // if deletion, same thing as a SNP that destroys all tRNA function
                 else {
                     double temp = gsl_rng_uniform(rng) ;
-                    if (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function ){
+                    if (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression > max_function ) {
                         max_function = (temp * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ) ;
                     }
                 }
@@ -295,6 +347,7 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                         if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
                             double temp = (gsl_rng_uniform(rng)) ;
                             if ( options.dual_rates == true ){
+                                // if mutation destroys tRNA, need proportion of tissues NOT affected times normal genotype
                                 if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                     if (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
                                         max_function = temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
@@ -305,41 +358,48 @@ void compute_model_fitness( double fitness[], vector<individual> &population, st
                                     if ( temp_gamma > 1.0 ){
                                         temp_gamma = 1.0 ;
                                     }
-                                    if ((temp * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) > max_function ){
-                                        max_function = (temp * ((*population[i].paternal_trnas[g]).sequence - temp_gamma) * (*population[i].paternal_trnas[g]).expression) ;
+                                    // store function of mutation effect times proportion of tissues affected
+                                    double temp_function = (temp * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                    // also get unaffected tissues * normal genotype
+                                    if ( temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) > max_function ){
+                                        max_function = (temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
                                     }
                                 }
                             }
                             else if ( options.mutation_pathways == false ){
                                 int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                                if ( temp * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                                    max_function = ( temp * (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                                // store function of mutation effect times proportion of tissues affected
+                                double temp_function = (temp * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
+                                // also get unaffected tissues * normal genotype
+                                if ( temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) > max_function ){
+                                    max_function = (temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
                                 }
                             }
                             else{
                                 int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                                if ( temp * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                                    max_function = ( temp * (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression ;
+                                // store function of mutation effect times proportion of tissues affected
+                                double temp_function = (temp * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * (*population[i].paternal_trnas[g]).expression) ;
+                                // also get unaffected tissues * normal genotype
+                                if ( temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression) > max_function ){
+                                    max_function = (temp_function + ((1.0 - temp) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression)) ;
                                 }
                             }
-                        }
+                        } 
                     }
+                    // no somatic SNP, just use normal genotype
                     else {
                         if (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
                             max_function = ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
                         }
                     }
-                    if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                        double temp = gsl_rng_uniform(rng) ;
-                        if ( temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function){
-                            max_function = ( temp * (*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ;
-                        }
-                    }
+                    // somatic dup doesn't make much sense in this fitness function
+                    // if we're only looking at your best tRNA, a copy of that tRNA won't be better than the one it is a copy of
                 }
+                // if deletion, same thing as a SNP that destroys all tRNA function
                 else {
                     double temp = gsl_rng_uniform(rng) ;
-                    if (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function ){
-                        max_function = temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
+                    if (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression > max_function ) {
+                        max_function = (temp * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ) ;
                     }
                 }
             }
@@ -372,6 +432,7 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
+                            // if mutation destroys tRNA, get prop tissues NOT affected times normal genotype
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                 x_ind += gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                             }
@@ -380,19 +441,24 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    x_ind += temp_function ;
-                                }   
+                                // get prop tissues affected times effect
+                                // plus also 1-tissues * normal genotype
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = ( temp_prop * ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                         }
                         else {
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = ( temp_prop * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -400,10 +466,13 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                 else {
                     x_ind += ( ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
                 }
+                // for dups just add prop tissues affected times normal genotype
+                // already added first gene above
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
                     x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
             }
+            // somatic deletion same as mutation destroying tRNA
             else {
                 x_ind += ( gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * ((*population[i].maternal_trnas[g]).expression) ) ;
             }
@@ -415,6 +484,7 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
+                            // if mutation destroys tRNA, get prop tissues NOT affected times normal genotype
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                 x_ind += gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
                             }
@@ -423,19 +493,24 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    x_ind += temp_function ;
-                                }
+                                // get prop tissues affected times effect
+                                // plus also 1-tissues * normal genotype
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( gsl_rng_uniform(rng) * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = ( temp_prop * ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                         }
                         else {
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( gsl_rng_uniform(rng) * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = ( temp_prop * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + (1.0 - temp_prop * (((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -443,12 +518,15 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
                 else {
                     x_ind += ( ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression) ) ;
                 }
+                // for dups just add prop tissues affected times normal genotype
+                // already added first gene above
                 if ( gsl_ran_bernoulli( rng, options.somatic_dup ) ){
-                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                    x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856))) ;
                 }
             }
+            // somatic deletion same as mutation destroying tRNA
             else {
-                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression) ) ;
             }
         }
 
@@ -465,12 +543,6 @@ void compute_gaussian_fitness( double fitness[], vector<individual> &population,
 /// compute fitness
 void compute_exp_fitness( double fitness[], vector<individual> &population, std::map<int, vector<double>> &mutations_to_function, std::map<string,double> &genotype_to_fitness, std::map<string,vector<string>> &genotype_to_genotypes, std::map<string,vector<double>> &genotype_to_fitnesses, cmd_line &options ) {
 
-    //////////////////////////////////
-    //////////////////////////////////
-    ///////// REGULAR METHOD ///////// 
-    //////////////////////////////////
-    //////////////////////////////////
-    //
     // gaussian with set mean and sd
     // float x = sum_all_tRNAs(tRNA.sequence * tRNA.expression)
     // fitness = ( 1 / sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) ) ) * exp(-1 * ( (pow((x - fitness.mean), 2)) / (2 * pow(options.fitness_sd, 2)) )
@@ -489,6 +561,7 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                 if ( gsl_ran_bernoulli( rng, (*population[i].maternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].maternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
+                            // mutation destroying tRNA = prop tissues NOT affected * normal genotype
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                 x_ind += gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression ;
                             }
@@ -497,19 +570,22 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    x_ind += temp_function ;
-                                }
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].maternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].maternal_trnas[g]).expression) ;
+                                x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( ((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = (((mutations_to_function[((*population[i].maternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].maternal_trnas[g]).expression)) ;
+                            x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = (temp_prop * ((genotype_to_fitnesses[((*population[i].maternal_trnas[g]).genotype)])[random_index]) * ((*population[i].maternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].maternal_trnas[g]).sequence) * (*population[i].maternal_trnas[g]).expression))) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -532,6 +608,7 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                 if ( gsl_ran_bernoulli( rng, (*population[i].paternal_trnas[g]).somatic ) ) {
                     if ( (*population[i].paternal_trnas[g]).muts < options.max_mutations ) {
                         if ( options.dual_rates == true ){
+                            // mutation destroying tRNA = prop tissues NOT affected * normal genotype
                             if ( gsl_ran_bernoulli( rng, options.prop_destroy )){
                                 x_ind += gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression ;
                             }
@@ -540,19 +617,22 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                                 if ( temp_gamma > 1.0 ){
                                     temp_gamma = 1.0 ;
                                 }
-                                double temp_function = (gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
-                                if ( temp_function > 0.0 ){
-                                    x_ind += temp_function ;
-                                }
+                                double temp_prop = gsl_rng_uniform(rng) ;
+                                double temp_function = (temp_prop * ((*population[i].paternal_trnas[g]).sequence - (1.0 - temp_gamma)) * (*population[i].paternal_trnas[g]).expression) ;
+                                x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                             }
                         }
                         else if ( options.mutation_pathways == false ){
                             int random_index = rand() % (mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)]).size() ;
-                            x_ind += ( ((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = (((mutations_to_function[((*population[i].paternal_trnas[g]).muts+1)])[random_index]) * ((*population[i].paternal_trnas[g]).expression)) ;
+                            x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                         }
                         else{
                             int random_index = rand() % (genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)]).size() ;
-                            x_ind += ( ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            double temp_prop = gsl_rng_uniform(rng) ;
+                            double temp_function = (temp_prop * ((genotype_to_fitnesses[((*population[i].paternal_trnas[g]).genotype)])[random_index]) * ((*population[i].paternal_trnas[g]).expression) ) ;
+                            x_ind += (temp_function + ((1.0-temp_prop)*(((*population[i].paternal_trnas[g]).sequence) * (*population[i].paternal_trnas[g]).expression))) ;
                         }
                     }
                     // else would mean 10 muts so sequence value is 0, so add 0, so do nothing
@@ -565,7 +645,7 @@ void compute_exp_fitness( double fitness[], vector<individual> &population, std:
                 }
             }
             else {
-                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression + gsl_ran_gaussian(rng, 0.15856)) ) ;
+                x_ind += ( gsl_rng_uniform(rng) * ((*population[i].paternal_trnas[g]).sequence) * ((*population[i].paternal_trnas[g]).expression) ) ;
             }
         }
 
