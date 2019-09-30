@@ -271,6 +271,7 @@ int main ( int argc, char **argv ) {
             reproduce( fitness, population, new_population, options ) ;
             swap( population, new_population ) ;
             print_stats( fitness, population, g, options.generations, "default", trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
+            // cout << "TEST: " << options.sample_all << "\t" << g << "\t" << options.burn_in << "\t" << g % options.sampling_frequency << endl ;
 
             if (( options.sample_all == true ) and ( g >= options.burn_in ) and ( g % options.sampling_frequency == 0 )){
                 std::string sampling_out = std::to_string(options.run_num) + "_sample_all.txt" ;
