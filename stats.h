@@ -65,7 +65,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
 		}
 	}
 
-    if ( g == 1 or ( options.demography == "" and g > options.burn_in and g % options.print_count == 0 ) or ( options.demography != "" and g % options.print_count == 0 ) or ( g == options.generations ) ) {
+    if ( g == 1 or ( options.demography == "" and g > options.burn_in and g % options.print_count == 0 ) or ( options.demography != "" and g % options.print_count == 0 ) or ( options.demography != "" and g == end_gen ) or ( g == options.generations ) ) {
 
         cout << g << "\t" ;
         cout << mean_fitness/population.size() << "\t" ; 
@@ -75,7 +75,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
         if ( options.quiet == false ){
             for ( auto t : found ) { 
                 if ( t.second > 0 ) {
-                    cout.precision(10) ;
+                    cout.precision(15) ;
                     cout << "\t" << (*t.first).name << "_" << (*t.first).locus << "_" << (*t.first).sequence << "_" << (*t.first).expression << "_" << (*t.first).muts ;
                     cout << "_" << (*t.first).genotype << "_" << (*t.first).birth << "_" << (*t.first).progenitor << "_" << (*t.first).birth_mode << "_" << t.second  ;    
                     if (t.second > ( population.size()*2 ) ) {

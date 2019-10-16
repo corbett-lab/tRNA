@@ -8,6 +8,7 @@ void update_found( vector<individual> &population, string node, std::map<string,
 
 
 	/// currently: if a locus has a tRNA at it in majority of genomes, that species has that tRNA
+	/// (every tRNA that can be considered orthologous or """the same""" has the same locus)
 	/// need to separate into active and inactive separately
 	/// keep current part true, but if most genes at that locus are active in that species,
 	/// add it to the active count, else add it to the inactive count

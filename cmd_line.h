@@ -45,6 +45,9 @@ public:
     double somatic_del ;
     double somatic_dup ;
 
+    /// multiple segmental duplications
+    double segdup_exp ;
+
     /// somatic dup as a fraction of somatic del
     double somatic_dup_mult ;
 
@@ -53,9 +56,6 @@ public:
     
     /// proportion of duplications that are local
     double prob_cluster ; 
-
-    /// proportion of LOCAL duplications that are SEG DUPS
-    double prob_segdup ; 
 
     /// rate at which gene conversion events occur
     double gene_conversion_rate ; 
@@ -131,7 +131,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     generations = 10000000 ;
     scaling_factor = 1 ;
 
-    /// for now, setting these to follow distributions of min/max:
+    ////////////////////
+    ///// PRIMATES /////
+    ////////////////////
     //
     // germline: baseline is 1.45e-8 (narasimhan et al) +- 0.05*1e-8 [1.4e-8..1.5e-8] per base pair per generation
     //              but we can scale this for each tRNA by multiplying by 70: [9.8e-7..1.05e-6]
@@ -146,6 +148,20 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     // duplication: calculated using DGV data, 95% confidence interval = [0.00771959, 0.01074484] for theta
     //              divide by 4*Ne (40,000) to get [1.9298975e-7, 2.68621e-7]
     //              use 2e-7
+    //
+    //
+    /////////////////////
+    ///// MOUSE/RAT /////
+    /////////////////////
+    //
+    // germline: baseline is 5.3e-9 (milholland et al)
+    //              * 70 = 3.7e-7
+    //
+    // somatic:  baseline is 4.4e-7 (milholland et al) 
+    //              scaled the same way: 3.08e-5
+    //
+    //
+    //
 
     // TO FIT TO:
     //      - extremely low dup/del rates per million years (0.008, 0.009, etc.)
@@ -180,11 +196,11 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     /// somatic deletion rate is almost certainly higher than somatic del
     /// so let's map somatic dup as some fraction of somatic del (from 0.0 to 1.0x sdel)
     somatic_dup_mult = 1.0 ;
+    segdup_exp = 1/5763.17444  ;
 
     gene_conversion_rate = 2.5e-7 ;
 
     prob_cluster = 0.6 ; 
-    prob_segdup = 0.25 ;
 
     sampling_frequency = 10000 ;
     sampling_count = 10 ;
@@ -297,9 +313,6 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if ( strcmp(argv[i],"--local") == 0 ) {
             prob_cluster = atof(argv[++i]) ;
-        }
-        if ( strcmp(argv[i],"--segdup") == 0 ) {
-            prob_segdup = atof(argv[++i]) ;
         }
         if ( strcmp(argv[i],"--geneconv") == 0 ) {
             gene_conversion_rate = atof(argv[++i]) ;

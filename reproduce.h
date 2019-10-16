@@ -74,7 +74,6 @@ void transmit_chromosome ( individual &parent, vector<gene*> &new_chromosome ) {
         position = (*parent.maternal_trnas[it_mom]).locus ;
         it_mom ++ ; 
     }
-
 }
 
 /// NOW create new individuals, choose their parents, and recombine to create new genome using above function!
@@ -99,7 +98,7 @@ void reproduce( const double *fitness, vector<individual> &population, vector<in
                
         // get their chromosomes 
         transmit_chromosome( population[mom], new_ind.maternal_trnas ) ; 
-        transmit_chromosome( population[dad], new_ind.paternal_trnas ) ; 
+        transmit_chromosome( population[dad], new_ind.paternal_trnas ) ;
 
         // swap individual in
         swap( new_population[i], new_ind ) ;

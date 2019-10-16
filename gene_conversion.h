@@ -6,8 +6,10 @@
 
 void non_allelic( gene* new_trna, gene* locus_trna, gene* sequence_trna ) {
 
-	// give new gene chromatin environment characteristics of locus_trna
+	// give new gene chromatin environment characteristics of locus_trna and its name
 	new_trna->locus = locus_trna->locus ;
+    new_trna->name = locus_trna->name ;
+    new_trna->progenitor = sequence_trna->progenitor ;
     new_trna->birth = locus_trna->birth ;
 	new_trna->expression = locus_trna->expression ;
 	new_trna->somatic = locus_trna->somatic ;
@@ -17,7 +19,7 @@ void non_allelic( gene* new_trna, gene* locus_trna, gene* sequence_trna ) {
 	new_trna->muts = sequence_trna->muts ;
 	new_trna->sequence = sequence_trna->sequence ;
     new_trna->genotype = sequence_trna->genotype ;
-	new_trna->progenitor = sequence_trna->name ;
+	
     new_trna->birth_mode = 'c' ;
 
 }
@@ -46,9 +48,6 @@ void gene_conversion( vector<individual> &population, cmd_line &options, vector<
         		// we will also erase the locus gene from that chromosome.
 
         		gene* new_trna = ::new gene ; 
-                new_trna->birth = current_gen ;
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
 
         		if ( population[i].maternal_trnas.size() == 2 ){
 
@@ -89,8 +88,6 @@ void gene_conversion( vector<individual> &population, cmd_line &options, vector<
         		// we will also erase the locus gene from that chromosome.
 
         		gene* new_trna = ::new gene ; 
-                trna_counter ++ ;
-                new_trna->name = trna_counter ;
 
         		if ( population[i].paternal_trnas.size() == 2 ){
 

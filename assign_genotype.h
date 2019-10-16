@@ -3,8 +3,8 @@
 
 std::string random_string( int length ) {
     auto randchar = []() -> char{
-        const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ;
-        return charset[ rand() % 26 ] ;
+        const char charset[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890" ;
+        return charset[ rand() % 62 ] ;
     } ;
     std::string str(length,0);
     std::generate_n( str.begin(), length, randchar );
@@ -34,6 +34,9 @@ void assign_genotype_gamma( gene* old_trna, gene* new_trna, cmd_line &options ) 
 				new_trna->sequence = 1.0 ;
 			}
 		}
+	}
+	else{
+		new_trna->sequence = 0.0 ;
 	}
 }
 

@@ -86,79 +86,81 @@ int main ( int argc, char **argv ) {
     std::map<string, vector<double>> genotype_to_fitnesses ;
 
     // load in different distributions of functions of tRNAs with given number of mutations:
-    if ( options.mutation_pathways == false ){
-        for ( int i = 1 ; i < 11 ; ++i ){
-            std::string myNum = std::to_string(i) ;
-            std::ifstream is(options.path + "functionDists/functionDists"+myNum+".txt") ;
-            std::istream_iterator<double> start(is), end ;
-            std::vector<double> mutation_penalties(start, end) ;
-            mutations_to_function[i] = mutation_penalties ;
-        }
-    }
-
-    // assign each SNP to associated sequence score
-    else {
-        ifstream input(options.path + "functionDists/yeastGenotypePathways.txt") ;
-        char const row_delim = '\n' ;
-        char const field_delim = '\t' ;
-        char const entry_delim = ',' ;
-        for (string row; getline(input, row, row_delim); ) {
-            istringstream iss(row) ;
-            vector<string> tokens{istream_iterator<string>{iss}, istream_iterator<string>{}} ;
-
-            // get genotype
-            string genotype ;
-            std::istringstream line_stream(row) ;
-            line_stream >> genotype ;
-
-            // if mutation chain ends here, add fitness of genotype + 0 as only option after
-            if ( tokens.size() == 2 ) {
-                double fitness ;
-                while (line_stream >> fitness) {
-                     genotype_to_fitness[genotype] = fitness ;
-                     vector<string> genotypes ;
-                     genotypes.push_back( "x" );
-                     vector<double> fitnesses ;
-                     fitnesses.push_back( 0.0 ) ;
-                     genotype_to_genotypes[genotype] = genotypes ;
-                     genotype_to_fitnesses[genotype] = fitnesses ;
-                 }
+    if ( options.dual_rates == false ){
+        if ( options.mutation_pathways == false ){
+            for ( int i = 1 ; i < 11 ; ++i ){
+                std::string myNum = std::to_string(i) ;
+                std::ifstream is(options.path + "functionDists/functionDists"+myNum+".txt") ;
+                std::istream_iterator<double> start(is), end ;
+                std::vector<double> mutation_penalties(start, end) ;
+                mutations_to_function[i] = mutation_penalties ;
             }
+        }
 
-            // if mutation chain keeps going, add index 1 as fitness
-            // then create vectors of posssible options for future genotypes and fitnesses
-            else if ( tokens.size() > 2 ){
-                string temp_fitness = tokens.at( 1 ) ;
-                double fitness = std::stod( temp_fitness ) ;
-                genotype_to_fitness[genotype] = fitness ;
+        // assign each SNP to associated sequence score
+        else {
+            ifstream input(options.path + "functionDists/yeastGenotypePathways.txt") ;
+            char const row_delim = '\n' ;
+            char const field_delim = '\t' ;
+            char const entry_delim = ',' ;
+            for (string row; getline(input, row, row_delim); ) {
+                istringstream iss(row) ;
+                vector<string> tokens{istream_iterator<string>{iss}, istream_iterator<string>{}} ;
 
-                vector<string> genotypes ;
-                vector<double> fitnesses ;
-                string temp_genotypes = tokens.at( 2 ) ;
-                string temp_fitnesses = tokens.at( 3 ) ;
-                int g_count = std::count(temp_genotypes.begin(), temp_genotypes.end(), ',') ;
-                int f_count = std::count(temp_fitnesses.begin(), temp_fitnesses.end(), ',') ;
-                // if only one option, create empty vector and add them in
-                if ( g_count == 0 ){
-                    genotypes.push_back( temp_genotypes ) ;
-                    double temp_f = std::stod( temp_fitnesses ) ;
-                    fitnesses.push_back( temp_f ) ;
-                    genotype_to_genotypes[genotype] = genotypes ;
-                    genotype_to_fitnesses[genotype] = fitnesses ;
+                // get genotype
+                string genotype ;
+                std::istringstream line_stream(row) ;
+                line_stream >> genotype ;
+
+                // if mutation chain ends here, add fitness of genotype + 0 as only option after
+                if ( tokens.size() == 2 ) {
+                    double fitness ;
+                    while (line_stream >> fitness) {
+                         genotype_to_fitness[genotype] = fitness ;
+                         vector<string> genotypes ;
+                         genotypes.push_back( "x" );
+                         vector<double> fitnesses ;
+                         fitnesses.push_back( 0.0 ) ;
+                         genotype_to_genotypes[genotype] = genotypes ;
+                         genotype_to_fitnesses[genotype] = fitnesses ;
+                     }
                 }
-                // if multiple options, split strings by comma and add all elements to vectors
-                else {
-                    istringstream gss(temp_genotypes) ;
-                    for (string temp_g; getline(gss, temp_g, entry_delim); ) {
-                        genotypes.push_back( temp_g ) ;
+
+                // if mutation chain keeps going, add index 1 as fitness
+                // then create vectors of posssible options for future genotypes and fitnesses
+                else if ( tokens.size() > 2 ){
+                    string temp_fitness = tokens.at( 1 ) ;
+                    double fitness = std::stod( temp_fitness ) ;
+                    genotype_to_fitness[genotype] = fitness ;
+
+                    vector<string> genotypes ;
+                    vector<double> fitnesses ;
+                    string temp_genotypes = tokens.at( 2 ) ;
+                    string temp_fitnesses = tokens.at( 3 ) ;
+                    int g_count = std::count(temp_genotypes.begin(), temp_genotypes.end(), ',') ;
+                    int f_count = std::count(temp_fitnesses.begin(), temp_fitnesses.end(), ',') ;
+                    // if only one option, create empty vector and add them in
+                    if ( g_count == 0 ){
+                        genotypes.push_back( temp_genotypes ) ;
+                        double temp_f = std::stod( temp_fitnesses ) ;
+                        fitnesses.push_back( temp_f ) ;
+                        genotype_to_genotypes[genotype] = genotypes ;
+                        genotype_to_fitnesses[genotype] = fitnesses ;
                     }
-                    istringstream fss(temp_fitnesses) ;
-                    for (string temp_f; getline(fss, temp_f, entry_delim); ) {
-                        double temp_f_each = std::stod( temp_f ) ;
-                        fitnesses.push_back( temp_f_each ) ;
+                    // if multiple options, split strings by comma and add all elements to vectors
+                    else {
+                        istringstream gss(temp_genotypes) ;
+                        for (string temp_g; getline(gss, temp_g, entry_delim); ) {
+                            genotypes.push_back( temp_g ) ;
+                        }
+                        istringstream fss(temp_fitnesses) ;
+                        for (string temp_f; getline(fss, temp_f, entry_delim); ) {
+                            double temp_f_each = std::stod( temp_f ) ;
+                            fitnesses.push_back( temp_f_each ) ;
+                        }
+                        genotype_to_genotypes[genotype] = genotypes ;
+                        genotype_to_fitnesses[genotype] = fitnesses ;
                     }
-                    genotype_to_genotypes[genotype] = genotypes ;
-                    genotype_to_fitnesses[genotype] = fitnesses ;
                 }
             }
         }
@@ -224,7 +226,7 @@ int main ( int argc, char **argv ) {
         stream << "" ;
     }
 
-    // optimal fitness based on inputs
+    // optimal fitness based on inputs (for use only if fitness is gaussian)
     double opt_fit = (1 / sqrt( 2 * 3.14159265358979323846 * pow(options.fitness_sd, 2) )) ;
 
     /////////////////////////////////////////
@@ -258,7 +260,7 @@ int main ( int argc, char **argv ) {
 
             // for first generation give user a quick reminder of what they did:
             if ( g == 1 ){
-                cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", dup = " << options.duplication_rate << ", del = "  ;
+                cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", sdup = " << options.duplication_rate << ", del = "  ;
                 cout << options.deletion_rate << ", fitness function = " << options.fitness_func << ", gene conversion rate = " << options.gene_conversion_rate << endl ;
             }
             
@@ -328,7 +330,7 @@ int main ( int argc, char **argv ) {
                 
                 // for first generation give user a quick reminder of what they did:
                 if ( g == 1 ){
-                    cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", dup = " << options.duplication_rate << ", del = "  ;
+                    cout << "somatic = " << options.somatic_rate << ", germline = " << options.germline_rate << ", sdup = " << options.duplication_rate << ", del = "  ;
                     cout << options.deletion_rate << ", fitness function = " << options.fitness_func << ", gene conversion rate = " << options.gene_conversion_rate << endl ;
                 }
                 

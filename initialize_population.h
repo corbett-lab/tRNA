@@ -156,8 +156,6 @@ void initialize_population( cmd_line &options, vector<gene*> &trna_bank, int &tr
         }
     }
 
-
-
     //////////////////////
     /// ADD PSEUDOGENE ///
     //////////////////////
