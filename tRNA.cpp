@@ -268,8 +268,8 @@ int main ( int argc, char **argv ) {
             vector<individual> new_population ( options.n ) ;
 
             mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
-            compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
             gene_conversion ( population, options, trna_bank, g, trna_counter ) ;
+            compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
             reproduce( fitness, population, new_population, options ) ;
             swap( population, new_population ) ;
             print_stats( fitness, population, g, options.generations, "default", trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;
@@ -338,8 +338,8 @@ int main ( int argc, char **argv ) {
                 vector<individual> new_population ( population.size() ) ;
 
                 mutate( population, options, trna_bank, g, trna_counter, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses ) ;
-                compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
                 gene_conversion ( population, options, trna_bank, g, trna_counter ) ;
+                compute_fitness( fitness, population, mutations_to_function, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, opt_fit, options ) ;
                 reproduce( fitness, population, new_population, options ) ;
                 swap( population, new_population ) ;
                 print_stats( fitness, population, g, branch_to_length[branch], branch_to_node2[branch], trna_bank, loci_to_lifespans, lifespan_to_count, options ) ;

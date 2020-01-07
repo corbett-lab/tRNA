@@ -228,8 +228,6 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
     fitness_mean = 10.52110756 ;
     fitness_sd = fitness_mean/4.0 ;
 
-    // fitness fitting parameters -- exponential
-    fitness_lambda = -15.0 ;
 
     fitness_func = "redundant" ;
 

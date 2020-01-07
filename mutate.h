@@ -40,12 +40,16 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                 new_trna->progenitor = (*population[i].maternal_trnas[g]).progenitor ;
                 new_trna->name = (*population[i].maternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
+
+                // dual rates: two different sets of mutations -- some non-functionalizing, some gamma
                 if ( options.dual_rates == true ){
                     assign_genotype_gamma( population[i].maternal_trnas[g], new_trna, options ) ;
                 }
+                // models: track NUMBER of mutations in a tRNA, then use that to get an effect on the function of the tRNA
                 else if ( options.mutation_pathways == false ){
                     assign_genotype_model( population[i].maternal_trnas[g], new_trna, mutations_to_function, options ) ;
                 }
+                // mutation pathways: draw from file of yeast mutations and corresponding fitness effects
                 else {
                     assign_genotype_pathways( population[i].maternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
                 }
@@ -69,12 +73,16 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                 new_trna->progenitor = (*population[i].paternal_trnas[g]).progenitor ;
                 new_trna->name = (*population[i].paternal_trnas[g]).name ;
                 new_trna->birth_mode = 'g' ;
+
+                // dual rates: two different sets of mutations -- some non-functionalizing, some gamma
                 if ( options.dual_rates == true ){
                     assign_genotype_gamma( population[i].paternal_trnas[g], new_trna, options ) ;
                 }
+                // models: track NUMBER of mutations in a tRNA, then use that to get an effect on the function of the tRNA
                 else if ( options.mutation_pathways == false ){
                     assign_genotype_model( population[i].paternal_trnas[g], new_trna, mutations_to_function, options ) ;
                 }
+                // mutation pathways: draw from file of yeast mutations and corresponding fitness effects
                 else {
                     assign_genotype_pathways( population[i].paternal_trnas[g], new_trna, genotype_to_fitness, genotype_to_genotypes, genotype_to_fitnesses, options ) ;
                 }
@@ -109,6 +117,7 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                     double my_start = population[i].maternal_trnas[g]->locus - (options.map_length * 0.0000001) ;
                     double my_end = my_start + gsl_ran_exponential(rng, options.segdup_exp) ;
                     for ( int t = 0 ; t < temp_size_m ; t ++ ) {
+
                         /// SEGMENTAL DUPLICATION:
                         /// if not the tRNA in question, leave it alone
                         /// if tRNA(s) being duplicated, add duplicate copy at new location
@@ -131,6 +140,7 @@ void mutate( vector<individual> &population, cmd_line &options, vector<gene*> &t
                                 new_trna->name = trna_counter ;
                                 population[i].maternal_trnas.push_back( new_trna ) ; 
                             }
+                            
                             // don't bother moving up unless the tRNA in question was itself produced by a seg dup
                             else if ( population[i].maternal_trnas[t]->birth_mode == 'S' ){
                                 gene* new_trna = ::new gene ; 
