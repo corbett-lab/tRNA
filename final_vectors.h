@@ -1,7 +1,7 @@
 #ifndef __FINAL_VECTORS_H
 #define __FINAL_VECTORS_H
 
-void final_vectors( std::map<string,map<double,int>> &node_to_final_found_active, std::map<string,map<double,int>> &node_to_final_found_inactive, std::map<string,map<string,int>> &node_to_final_genotypes, std::map<string, int> &node_to_Ne, std::string vector_out, cmd_line &options ) {
+void final_vectors( std::map<string,vector<double>> &node_to_final_active_loci, std::map<string,vector<double>> &node_to_final_inactive_loci, std::map<string,map<string,int>> &node_to_final_genotypes, std::map<string, int> &node_to_Ne, std::string vector_out, cmd_line &options ) {
 
 	map<string, int>::iterator p ;
 	map<double, vector<string>> locus_to_nodes_active ;
@@ -15,16 +15,14 @@ void final_vectors( std::map<string,map<double,int>> &node_to_final_found_active
 	for ( p = node_to_Ne.begin() ; p != node_to_Ne.end() ; p ++ ) {
 		if ( ( (p->first).find("anc") == std::string::npos ) and ( (p->first).find("root") == std::string::npos ) and ( (p->first).find("int") == std::string::npos ) ) {
 			my_nodes.push_back( p->first ) ;
-			for ( auto l : node_to_final_found_active[p->first] ){
-				locus_to_nodes_active[l.first].push_back( p->first ) ;
+			for ( int t = 0 ; t < node_to_final_active_loci[p->first].size() ; t ++ ) { 
+				locus_to_nodes_active[node_to_final_active_loci[p->first][t]].push_back( p->first ) ;
 			}
-			for ( auto l : node_to_final_found_inactive[p->first] ){
-				locus_to_nodes_inactive[l.first].push_back( p->first ) ;
+			for ( int t = 0 ; t < node_to_final_inactive_loci[p->first].size() ; t ++ ) { 
+				locus_to_nodes_active[node_to_final_inactive_loci[p->first][t]].push_back( p->first ) ;
 			}
 			for ( auto l : node_to_final_genotypes[p->first] ){
-				if ( l.second >= (node_to_Ne[p->first] ) ){
-					genotype_to_nodes[l.first].push_back( p->first ) ;
-				}
+				genotype_to_nodes[l.first].push_back( p->first ) ;
 			}
 		}
 	}

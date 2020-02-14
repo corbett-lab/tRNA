@@ -181,8 +181,8 @@ int main ( int argc, char **argv ) {
     std::map<int, string> branch_to_node1 ;
     std::map<int, string> branch_to_node2 ;
     std::map<string, int> node_to_Ne ;
-    std::map<string,map<double,int>> node_to_final_found_active ;
-    std::map<string,map<double,int>> node_to_final_found_inactive ;
+    std::map<string,vector<double>> node_to_final_active_loci ;
+    std::map<string,vector<double>> node_to_final_inactive_loci ;
     std::map<string,map<string,int>> node_to_final_genotypes ;
     std::map<string, vector<individual>> node_to_population ;
     std::map<string, vector<gene*>> node_to_trna_bank ;
@@ -357,13 +357,11 @@ int main ( int argc, char **argv ) {
             node_to_trna_bank[branch_to_node2[branch]] = trna_bank ;
             // std::string sampling_out = std::to_string(options.run_num) + "_" + branch_to_node1[branch] + "_to_" + branch_to_node2[branch] + "_final_population.txt" ;
             // get_final_stats( population, sampling_out, options ) ;
-            update_found( population, branch_to_node2[branch], node_to_final_found_active, node_to_final_found_inactive, options ) ;
-            update_genotypes( population, branch_to_node2[branch], node_to_final_genotypes, options ) ;
+            update_found( population, branch_to_node2[branch], node_to_final_active_loci, node_to_final_inactive_loci, node_to_final_genotypes, options ) ;
         }
         cout << "running final vectors" << endl ;
         std::string vector_out = std::to_string(options.run_num) + "_final_vector.txt" ;
-        final_vectors( node_to_final_found_active, node_to_final_found_inactive, node_to_final_genotypes, node_to_Ne, vector_out, options ) ;
-        
+        final_vectors( node_to_final_active_loci, node_to_final_inactive_loci, node_to_final_genotypes, node_to_Ne, vector_out, options ) ;   
     }
 
     printf("Total time: %.2f seconds. ", (double)(clock() - tStart)/CLOCKS_PER_SEC) ;
