@@ -19,7 +19,7 @@ void final_vectors( std::map<string,vector<double>> &node_to_final_active_loci, 
 				locus_to_nodes_active[node_to_final_active_loci[p->first][t]].push_back( p->first ) ;
 			}
 			for ( int t = 0 ; t < node_to_final_inactive_loci[p->first].size() ; t ++ ) { 
-				locus_to_nodes_active[node_to_final_inactive_loci[p->first][t]].push_back( p->first ) ;
+				locus_to_nodes_inactive[node_to_final_inactive_loci[p->first][t]].push_back( p->first ) ;
 			}
 			for ( auto l : node_to_final_genotypes[p->first] ){
 				genotype_to_nodes[l.first].push_back( p->first ) ;
