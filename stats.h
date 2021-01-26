@@ -3,11 +3,10 @@
 
 void print_stats ( double fitness[], const vector<individual> &population, int g, int end_gen, string pop_name, vector<gene*> &trna_bank, std::map<double, int> &loci_to_lifespans, std::map<int, int> &lifespan_to_count, cmd_line &options ) {
     
-    float trna_count = 0 ;
-    float trna_pseudogenes = 0 ;
-    float mean_fitness = 0.0 ;  
-    map<gene*,int> found ; 
-    map<double,int> found_loci ;
+    float trna_count = 0 ; // total tRNA loci in each individual in population
+    float mean_fitness = 0.0 ;  // add fitness of each individual, then divide by population size
+    map<gene*,int> found ; // trna objects : number of genomes containing them
+    map<double,int> found_loci ; // loci : number of genomes with tRNA at that locus
     vector<double> temp_loci ;
 
 	/// go through and find all extant tRNAs
@@ -54,7 +53,7 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
         }
     }
 
-	/// go through and delete all non-existing trnas
+	/// go through and delete all non-existent trnas
 	for ( auto t = trna_bank.begin(); t != trna_bank.end() ; ) { 
 		if ( !found[*t] ) { 
 			delete *t ;
@@ -65,6 +64,10 @@ void print_stats ( double fitness[], const vector<individual> &population, int g
 		}
 	}
 
+    /// print stats if we're done with burn-in and g is a multiple of the print-count, or we've reached the end
+    /// print generation number, mean fitness, average tRNAs per person, total tRNAs in bank,
+    /// and then for each tRNA: name, locus, sequence, expression level, SNPs accumulated, genotype, birth generation,
+    /// progenitor, how it was made, number of genomes it is found in.
     if ( g == 1 or ( options.demography == "" and g > options.burn_in and g % options.print_count == 0 ) or ( options.demography != "" and g % options.print_count == 0 ) or ( options.demography != "" and g == end_gen ) or ( g == options.generations ) ) {
 
         cout << g << "\t" ;

@@ -21,7 +21,12 @@ void nonlocal( gene* old_trna, gene* new_trna, std::map<double, int> &temp_loci,
     // genes are a good proxy for insertable sites -- if a gene can be inserted, it probably has at some point,
     // and if not, then the distribution of possible sites for insertion is probably not that different.
     
-    new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+    if ( options.flat_somatic_rate == false ){
+        new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+    }
+    else {
+        new_trna->somatic = options.somatic_rate ;
+    }
     new_trna->germline = options.germline_rate * ((11.8898 * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
     new_trna->sequence = old_trna->sequence ;
     new_trna->genotype = old_trna->genotype ;

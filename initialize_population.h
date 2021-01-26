@@ -145,7 +145,12 @@ void initialize_population( cmd_line &options, vector<gene*> &trna_bank, int &tr
             // new_trna->frequency.push_back( 0 ) ;
 
             /// mutation rates :
-            new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            if ( options.flat_somatic_rate == false ){
+                new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            }
+            else {
+                new_trna->somatic = options.somatic_rate ;
+            }
             new_trna->germline = options.germline_rate * ((11.8898 * (pow(new_trna->expression, 0.7415))) + 1.3932) ;  
             new_trna->birth_mode = 'f' ;
 
@@ -179,7 +184,12 @@ void initialize_population( cmd_line &options, vector<gene*> &trna_bank, int &tr
             // new_trna->frequency.push_back( 0 ) ;
 
             /// mutation rates 
-            new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            if ( options.flat_somatic_rate == false ){
+                new_trna->somatic = options.somatic_rate * ((options.somatic_coefficient * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
+            }
+            else {
+                new_trna->somatic = options.somatic_rate ;
+            }
             new_trna->germline = options.germline_rate * ((11.8898 * (pow(new_trna->expression, 0.7415))) + 1.3932) ;
             new_trna->birth_mode = 'f' ;  
 

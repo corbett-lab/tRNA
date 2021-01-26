@@ -7,6 +7,8 @@ void reduce_ne( cmd_line &options, vector<individual> &old_population, vector<in
 		gene* new_trna = ::new gene ;
 		new_trna->name = (old_trna_bank[i])->name ;
 		new_trna->locus = (old_trna_bank[i])->locus ;
+		new_trna->germline = (old_trna_bank[i])->germline ;
+		new_trna->somatic = (old_trna_bank[i])->somatic ;
 		new_trna->sequence = (old_trna_bank[i])->sequence ;
 		new_trna->expression = (old_trna_bank[i])->expression ;
 		new_trna->muts = (old_trna_bank[i])->muts ;

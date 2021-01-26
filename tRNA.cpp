@@ -78,6 +78,24 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    """
+    In this section:
+    - if dual_rates == FALSE and mutation_pathways == FALSE:
+    -- each SNP incurred by a tRNA gene will result in a change to its fitness
+    -- the resulting fitness is drawn from the functionDists folder, where each numbered
+    file represents the fitness of a yeast tRNA that has incurred that number of SNPs
+    
+    - if dual_rates == FALSE and mutation_pathways == TRUE:
+    -- each SNP incurred by a tRNA gene will result in a change to its fitness, stored
+    as its genotype in a string
+    -- the fitness associated with that string is drawn from yeastGenotypePathways.txt,
+    which contains the actual SNPs incurred by the tRNA genes in the same experiment.
+    -- going forward, a tRNA can only get mutations for which there is a fitness associated
+    with the resulting genotype.
+    -- for example, if the first mutation is A1, from there it can only become A1-G4, 
+    A1-A10, etc..
+    """
+
     // for random fitness drawing:
     std::map<int, vector<double>> mutations_to_function ;
     // for pathway-specific fitness drawing:
@@ -177,6 +195,17 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    """
+    In this section, we read in a demography file.
+    -- These files are formatted as such:
+    node1 node2 branch_length ne1 ne2
+    -- all branches making up a tree must be present
+    -- there must also be a root as node1 for one branch
+    -- before the root is the burn-in phase
+    -- the branch lengths and effective population sizes may be scaled if the scaling_factor 
+    flag is used.
+    """
+
     std::map<int, int> branch_to_length ;
     std::map<int, string> branch_to_node1 ;
     std::map<int, string> branch_to_node2 ;
@@ -219,6 +248,11 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    """
+    If the sampling flag is used, after X generations, an XXX_sample.txt file will be written
+    with a sampling from the population at that specific time.
+    """
+
     // enable sampling 
     if ( options.sample == true ){
         std::string sampling_out = std::to_string(options.run_num) + "_sample.txt" ;
@@ -234,6 +268,22 @@ int main ( int argc, char **argv ) {
     /////// NOT USING DEMOGRAPHY FILE ///////
     /////////////////////////////////////////
     /////////////////////////////////////////
+
+    """
+    If a demography file is not used, will simulate one continuous population, with
+    no changes to the population size, for the input number of generations. This is
+    the most straightforward use of the simulation framework.
+
+    The simulation main loop is as follows:
+    -- mutate (go through all genes in all individuals and add mutations)
+    -- gene_conversion (at user input rate, allow gene conversion within individuals)
+    -- compute_fitness (induce somatic mutations, and, based on user input function, 
+    compute fitness according to one of several functions)
+    -- reproduce (using fitness including somatic mutations, as well as Haldane's map 
+    function for recombination events, create next generation)
+    -- swap (built-in function to save new population)
+    -- print_stats (give the user )
+    """
 
     if ( options.demography == "" ) {
         // evolve the population forward in time
@@ -256,6 +306,7 @@ int main ( int argc, char **argv ) {
             }
         }
 
+        /// run simulation for g generationså
         for ( int g = 1 ; g <= options.generations ; g ++ ) {
 
             // for first generation give user a quick reminder of what they did:
@@ -291,6 +342,13 @@ int main ( int argc, char **argv ) {
     /////// USING DEMOGRAPHY FILE ///////
     /////////////////////////////////////
     /////////////////////////////////////
+
+    """
+    If a demography file IS used, we need to simulate each branch, and then store 
+    the population at the end of each branch (so that if there are multiple branches
+    coming from a single node, we can simulate both from the same starting point).
+    For the burn-in, we start from default settings.
+    """
 
     else {
         for ( int branch = 0 ; branch <= last_branch ; branch ++ ) {

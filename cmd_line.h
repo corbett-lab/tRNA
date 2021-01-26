@@ -30,6 +30,7 @@ public:
     /// mutation rates
     double germline_rate ;
     double somatic_rate ;
+    bool flat_somatic_rate ;
 
     // gamma / desroy model
     bool dual_rates ;
@@ -183,6 +184,7 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
 
     germline_rate = 1e-6 ;
     somatic_rate = 1.96e-5 ;
+    flat_somatic_rate = false ;
     deletion_rate = 3.7e-6 ; 
     duplication_rate = 3.7e-6 ; 
     somatic_del = 3.7e-6 ;
@@ -272,6 +274,9 @@ void cmd_line::read_cmd_line ( int argc, char *argv[] ) {
         }
         if ( strcmp(argv[i],"--us") == 0 ) {
             somatic_rate = atof(argv[++i]) ;
+        }
+        if ( strcmp(argv[i],"--flat-somatic-rate") == 0 ) {
+            flat_somatic_rate = true ;
         }
         if ( strcmp(argv[i],"--dual-rates") == 0 ) {
             dual_rates = true ;
