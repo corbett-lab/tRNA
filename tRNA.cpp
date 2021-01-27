@@ -78,7 +78,7 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
-    """
+    /**
     In this section:
     - if dual_rates == FALSE and mutation_pathways == FALSE:
     -- each SNP incurred by a tRNA gene will result in a change to its fitness
@@ -94,7 +94,9 @@ int main ( int argc, char **argv ) {
     with the resulting genotype.
     -- for example, if the first mutation is A1, from there it can only become A1-G4, 
     A1-A10, etc..
-    """
+
+    - if dual_rates == true, we are using either the gamma model or the model4 model
+    */
 
     // for random fitness drawing:
     std::map<int, vector<double>> mutations_to_function ;
@@ -195,7 +197,7 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
-    """
+    /**
     In this section, we read in a demography file.
     -- These files are formatted as such:
     node1 node2 branch_length ne1 ne2
@@ -204,7 +206,7 @@ int main ( int argc, char **argv ) {
     -- before the root is the burn-in phase
     -- the branch lengths and effective population sizes may be scaled if the scaling_factor 
     flag is used.
-    """
+    **/
 
     std::map<int, int> branch_to_length ;
     std::map<int, string> branch_to_node1 ;
@@ -248,10 +250,10 @@ int main ( int argc, char **argv ) {
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
-    """
+    /**
     If the sampling flag is used, after X generations, an XXX_sample.txt file will be written
     with a sampling from the population at that specific time.
-    """
+    **/
 
     // enable sampling 
     if ( options.sample == true ){
@@ -269,7 +271,7 @@ int main ( int argc, char **argv ) {
     /////////////////////////////////////////
     /////////////////////////////////////////
 
-    """
+    /**
     If a demography file is not used, will simulate one continuous population, with
     no changes to the population size, for the input number of generations. This is
     the most straightforward use of the simulation framework.
@@ -283,7 +285,7 @@ int main ( int argc, char **argv ) {
     function for recombination events, create next generation)
     -- swap (built-in function to save new population)
     -- print_stats (give the user )
-    """
+    **/
 
     if ( options.demography == "" ) {
         // evolve the population forward in time
@@ -343,12 +345,12 @@ int main ( int argc, char **argv ) {
     /////////////////////////////////////
     /////////////////////////////////////
 
-    """
+    /**
     If a demography file IS used, we need to simulate each branch, and then store 
     the population at the end of each branch (so that if there are multiple branches
     coming from a single node, we can simulate both from the same starting point).
     For the burn-in, we start from default settings.
-    """
+    **/
 
     else {
         for ( int branch = 0 ; branch <= last_branch ; branch ++ ) {
