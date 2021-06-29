@@ -11,7 +11,7 @@ all:
 #	$(LINK.cc) -std=c++11 -O3 tRNA.cpp $(GSL_LIBS) $(CFLAGS) -o tRNA
 
 
-## In many cases, tcmalloc will substantially decrease runtime of SELAM
+## In many cases, tcmalloc will substantially decrease runtime
 ## we therefore strongly recommend using this library 
 ## on mac osx it can be installed using homebrew: brew install google-perftools
 ## on ubuntu distributions you may try: sudo apt-get install google-perftools libgoogle-perftools-dev
